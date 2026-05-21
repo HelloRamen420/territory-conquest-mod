@@ -107,9 +107,9 @@ Adding input to inheritance map
 Processing entries
 Conflicting propagated mapping for com/example/territory/TerritorySavedData/save(Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/nbt/CompoundTag; from net/minecraft/world/level/saveddata/SavedData/save(Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/nbt/CompoundTag;: save -> m_7176_
 Conflicting propagated mapping for com/example/territory/client/gui/TerritoryStatusScreen/isPauseScreen()Z from net/minecraft/client/gui/screens/Screen/isPauseScreen()Z: isPauseScreen -> m_7043_
+Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScreen/isPauseScreen()Z from net/minecraft/client/gui/screens/Screen/isPauseScreen()Z: isPauseScreen -> m_7043_
 Conflicting propagated mapping for com/example/territory/client/gui/TerritoryStatusScreen/init()V from net/minecraft/client/gui/screens/Screen/init()V: init -> m_7856_
 Conflicting propagated mapping for com/example/territory/client/gui/TerritoryStatusScreen/render(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V from net/minecraft/client/gui/screens/Screen/render(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V: render -> m_6305_
-Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScreen/isPauseScreen()Z from net/minecraft/client/gui/screens/Screen/isPauseScreen()Z: isPauseScreen -> m_7043_
 Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScreen/mouseScrolled(DDD)Z from net/minecraft/client/gui/components/events/ContainerEventHandler/mouseScrolled(DDD)Z: mouseScrolled -> m_6050_
 Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScreen/init()V from net/minecraft/client/gui/screens/Screen/init()V: init -> m_7856_
 Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScreen/mouseDragged(DDIDD)Z from net/minecraft/client/gui/components/events/ContainerEventHandler/mouseDragged(DDIDD)Z: mouseDragged -> m_7979_
@@ -118,16 +118,18 @@ Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScre
 Conflicting propagated mapping for com/example/territory/client/gui/SubCoreScreen/isPauseScreen()Z from net/minecraft/client/gui/screens/Screen/isPauseScreen()Z: isPauseScreen -> m_7043_
 Conflicting propagated mapping for com/example/territory/client/gui/SubCoreScreen/init()V from net/minecraft/client/gui/screens/Screen/init()V: init -> m_7856_
 Conflicting propagated mapping for com/example/territory/client/gui/SubCoreScreen/render(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V from net/minecraft/client/gui/screens/Screen/render(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V: render -> m_6305_
+Conflicting propagated mapping for com/example/territory/client/gui/CoreBlockScreen/keyPressed(III)Z from net/minecraft/client/gui/screens/Screen/keyPressed(III)Z: keyPressed -> m_7933_
 Conflicting propagated mapping for com/example/territory/client/gui/CoreBlockScreen/isPauseScreen()Z from net/minecraft/client/gui/screens/Screen/isPauseScreen()Z: isPauseScreen -> m_7043_
 Conflicting propagated mapping for com/example/territory/client/gui/CoreBlockScreen/onClose()V from net/minecraft/client/gui/screens/Screen/onClose()V: onClose -> m_7379_
 Conflicting propagated mapping for com/example/territory/client/gui/CoreBlockScreen/init()V from net/minecraft/client/gui/screens/Screen/init()V: init -> m_7856_
 Conflicting propagated mapping for com/example/territory/client/gui/CoreBlockScreen/render(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V from net/minecraft/client/gui/screens/Screen/render(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V: render -> m_6305_
+Conflicting propagated mapping for com/example/territory/client/gui/CoreBlockScreen/charTyped(CI)Z from net/minecraft/client/gui/components/events/ContainerEventHandler/charTyped(CI)Z: charTyped -> m_5534_
 Conflicting propagated mapping for com/example/territory/block/TerritoryFlagBlock/createBlockStateDefinition(Lnet/minecraft/world/level/block/state/StateDefinition$Builder;)V from net/minecraft/world/level/block/Block/createBlockStateDefinition(Lnet/minecraft/world/level/block/state/StateDefinition$Builder;)V: createBlockStateDefinition -> m_7926_
 Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScreen$TradeSlider/updateMessage()V from net/minecraft/client/gui/components/AbstractSliderButton/updateMessage()V: updateMessage -> m_5695_
 Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScreen$TradeSlider/applyValue()V from net/minecraft/client/gui/components/AbstractSliderButton/applyValue()V: applyValue -> m_5697_
 Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScreen$1/renderButton(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V from net/minecraft/client/gui/components/Button/renderButton(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V: renderButton -> m_6303_
-Conflicting propagated mapping for com/example/territory/block/SubCoreBlock/use(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult; from net/minecraft/world/level/block/state/BlockBehaviour/use(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult;: use -> m_6227_
 Conflicting propagated mapping for com/example/territory/block/CoreBlock/use(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult; from net/minecraft/world/level/block/state/BlockBehaviour/use(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult;: use -> m_6227_
+Conflicting propagated mapping for com/example/territory/block/SubCoreBlock/use(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult; from net/minecraft/world/level/block/state/BlockBehaviour/use(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult;: use -> m_6227_
 Adding extras
 Sorting
 Writing Output: /Users/kirinokazuya/Documents/￣ﾂﾽ￣ﾃﾼ￣ﾂﾹ￣ﾂﾳ￣ﾃﾼ￣ﾃﾉ￩ﾡﾞ/territory-conquest-mod/build/reobfJar/output.jar
@@ -173,6 +175,7 @@ Writing Output: /Users/kirinokazuya/Documents/￣ﾂﾽ￣ﾃﾼ￣ﾂﾹ￣ﾂ�
   com/example/
   com/example/territory/
   com/example/territory/TerritoryConquest.class
+  com/example/territory/TerritorySavedData$AuctionEntry.class
   com/example/territory/TerritorySavedData$PlayerState.class
   com/example/territory/TerritorySavedData.class
   com/example/territory/block/
@@ -181,6 +184,7 @@ Writing Output: /Users/kirinokazuya/Documents/￣ﾂﾽ￣ﾃﾼ￣ﾂﾹ￣ﾂ�
   com/example/territory/block/SubCoreBlock.class
   com/example/territory/block/TerritoryFlagBlock.class
   com/example/territory/client/
+  com/example/territory/client/ClientAuctionData.class
   com/example/territory/client/KeyInit.class
   com/example/territory/client/gui/
   com/example/territory/client/gui/CoreBlockScreen.class
@@ -205,6 +209,8 @@ Writing Output: /Users/kirinokazuya/Documents/￣ﾂﾽ￣ﾃﾼ￣ﾂﾹ￣ﾂ�
   com/example/territory/item/ModItems.class
   com/example/territory/network/
   com/example/territory/network/ModMessages.class
+  com/example/territory/network/PacketRequestAuctionAction$Action.class
+  com/example/territory/network/PacketRequestAuctionAction.class
   com/example/territory/network/PacketRequestCoreUpgrade$1.class
   com/example/territory/network/PacketRequestCoreUpgrade$UpgradeType.class
   com/example/territory/network/PacketRequestCoreUpgrade.class
@@ -213,6 +219,7 @@ Writing Output: /Users/kirinokazuya/Documents/￣ﾂﾽ￣ﾃﾼ￣ﾂﾹ￣ﾂ�
   com/example/territory/network/PacketRequestTerritoryInfo.class
   com/example/territory/network/PacketRequestTrade$1.class
   com/example/territory/network/PacketRequestTrade.class
+  com/example/territory/network/PacketSyncAuctionList.class
   com/example/territory/network/PacketSyncCoreInfo$ClientAccess.class
   com/example/territory/network/PacketSyncCoreInfo.class
   com/example/territory/network/PacketSyncSubCoreInfo$ClientAccess.class

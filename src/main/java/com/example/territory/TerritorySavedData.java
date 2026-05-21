@@ -49,6 +49,21 @@ public class TerritorySavedData extends SavedData {
         public boolean doubleTradeLicense = false;
         public List<BlockPos> passiveIncomeSubCores = new ArrayList<>();
 
+        public List<String> treasuryHistory = new ArrayList<>();
+
+        public void addHistory(String change, String reason) {
+            if (treasuryHistory == null) {
+                treasuryHistory = new ArrayList<>();
+            }
+            java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            String timestamp = java.time.LocalDateTime.now().format(dtf);
+            String entry = "[" + change + "] " + reason + " - " + timestamp;
+            treasuryHistory.add(0, entry);
+            while (treasuryHistory.size() > 20) {
+                treasuryHistory.remove(treasuryHistory.size() - 1);
+            }
+        }
+
         public CompoundTag toNBT() {
             CompoundTag tag = new CompoundTag();
             tag.putUUID("uuid", uuid);
@@ -89,6 +104,17 @@ public class TerritorySavedData extends SavedData {
                 passiveIncomeTag.add(posTag);
             }
             tag.put("passiveIncomeSubCores", passiveIncomeTag);
+
+            // treasuryHistory Serialization
+            ListTag historyTag = new ListTag();
+            if (treasuryHistory != null) {
+                for (String entry : treasuryHistory) {
+                    CompoundTag entryTag = new CompoundTag();
+                    entryTag.putString("log", entry);
+                    historyTag.add(entryTag);
+                }
+            }
+            tag.put("treasuryHistory", historyTag);
             
             // Serialize SubCores List
             ListTag subCoresTag = new ListTag();
@@ -158,6 +184,17 @@ public class TerritorySavedData extends SavedData {
                     ));
                 }
             }
+
+            // treasuryHistory Deserialization
+            if (tag.contains("treasuryHistory", Tag.TAG_LIST)) {
+                ListTag historyList = tag.getList("treasuryHistory", Tag.TAG_COMPOUND);
+                state.treasuryHistory = new ArrayList<>();
+                for (int i = 0; i < historyList.size(); i++) {
+                    state.treasuryHistory.add(historyList.getCompound(i).getString("log"));
+                }
+            } else {
+                state.treasuryHistory = new ArrayList<>();
+            }
             
             // Deserialize SubCores List
             if (tag.contains("subCores", Tag.TAG_LIST)) {
@@ -190,6 +227,63 @@ public class TerritorySavedData extends SavedData {
         }
     }
 
+
+    public static class AuctionEntry {
+        public int id;
+        public UUID sellerUuid;
+        public String sellerUsername;
+        public net.minecraft.world.item.ItemStack itemStack;
+        public int price;
+
+        public AuctionEntry() {}
+
+        public AuctionEntry(int id, UUID sellerUuid, String sellerUsername, net.minecraft.world.item.ItemStack itemStack, int price) {
+            this.id = id;
+            this.sellerUuid = sellerUuid;
+            this.sellerUsername = sellerUsername;
+            this.itemStack = itemStack;
+            this.price = price;
+        }
+
+        public CompoundTag toNBT() {
+            CompoundTag tag = new CompoundTag();
+            tag.putInt("id", id);
+            tag.putUUID("sellerUuid", sellerUuid);
+            tag.putString("sellerUsername", sellerUsername);
+            CompoundTag itemTag = new CompoundTag();
+            itemStack.save(itemTag);
+            tag.put("itemStack", itemTag);
+            tag.putInt("price", price);
+            return tag;
+        }
+
+        public static AuctionEntry fromNBT(CompoundTag tag) {
+            AuctionEntry entry = new AuctionEntry();
+            entry.id = tag.getInt("id");
+            entry.sellerUuid = tag.getUUID("sellerUuid");
+            entry.sellerUsername = tag.getString("sellerUsername");
+            if (tag.contains("itemStack", Tag.TAG_COMPOUND)) {
+                entry.itemStack = net.minecraft.world.item.ItemStack.of(tag.getCompound("itemStack"));
+            } else {
+                entry.itemStack = net.minecraft.world.item.ItemStack.EMPTY;
+            }
+            entry.price = tag.getInt("price");
+            return entry;
+        }
+    }
+
+    private final List<AuctionEntry> auctionList = new ArrayList<>();
+    private int lastAuctionId = 0;
+
+    public List<AuctionEntry> getAuctionList() {
+        return auctionList;
+    }
+
+    public int getNextAuctionId() {
+        this.lastAuctionId++;
+        setDirty();
+        return this.lastAuctionId;
+    }
 
     private final Map<UUID, PlayerState> players = new HashMap<>();
     private final Map<Long, UUID> claimedChunks = new HashMap<>(); // chunkPos long -> playerUuid
@@ -304,6 +398,16 @@ public class TerritorySavedData extends SavedData {
             }
         }
 
+        // Load auction list
+        data.lastAuctionId = tag.contains("lastAuctionId") ? tag.getInt("lastAuctionId") : 0;
+        if (tag.contains("auctionList", Tag.TAG_LIST)) {
+            ListTag list = tag.getList("auctionList", Tag.TAG_COMPOUND);
+            data.auctionList.clear();
+            for (int i = 0; i < list.size(); i++) {
+                data.auctionList.add(AuctionEntry.fromNBT(list.getCompound(i)));
+            }
+        }
+
         return data;
     }
 
@@ -335,6 +439,14 @@ public class TerritorySavedData extends SavedData {
             coresTag.putUUID(String.valueOf(entry.getKey()), entry.getValue());
         }
         tag.put("corePositions", coresTag);
+
+        // Save auction list
+        tag.putInt("lastAuctionId", lastAuctionId);
+        ListTag list = new ListTag();
+        for (AuctionEntry entry : auctionList) {
+            list.add(entry.toNBT());
+        }
+        tag.put("auctionList", list);
 
         return tag;
     }

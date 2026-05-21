@@ -75,6 +75,18 @@ public class ModMessages {
                 .consumer(PacketRequestTrade::handle)
                 .add();
 
+        net.messageBuilder(PacketRequestAuctionAction.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(PacketRequestAuctionAction::new)
+                .encoder(PacketRequestAuctionAction::toBytes)
+                .consumer(PacketRequestAuctionAction::handle)
+                .add();
+
+        net.messageBuilder(PacketSyncAuctionList.class, id(), NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(PacketSyncAuctionList::new)
+                .encoder(PacketSyncAuctionList::toBytes)
+                .consumer(PacketSyncAuctionList::handle)
+                .add();
+
     }
 
     public static <MSG> void sendToServer(MSG message) {

@@ -44,6 +44,10 @@ public class TerritoryCommand {
                     .executes(TerritoryCommand::executeStart))
                 .then(Commands.literal("rebel")
                     .executes(TerritoryCommand::executeRebel))
+                .then(Commands.literal("history")
+                    .executes(TerritoryCommand::executeHistory))
+                .then(Commands.literal("log")
+                    .executes(TerritoryCommand::executeHistory))
         );
     }
 
@@ -240,6 +244,37 @@ public class TerritoryCommand {
                 overlordPlayer.playNotifySound(net.minecraft.sounds.SoundEvents.ENDER_DRAGON_GROWL, net.minecraft.sounds.SoundSource.PLAYERS, 1.0f, 1.0f);
             }
 
+        } catch (Exception e) {
+            src.sendFailure(new TextComponent("§cプレイヤーとして実行してください。"));
+            return 0;
+        }
+        return 1;
+    }
+
+    private static int executeHistory(CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack src = ctx.getSource();
+        try {
+            UUID uuid = src.getPlayerOrException().getUUID();
+            ServerLevel overworld = src.getServer().getLevel(Level.OVERWORLD);
+            if (overworld == null) return 0;
+
+            TerritorySavedData data = TerritorySavedData.get(overworld);
+            TerritorySavedData.PlayerState state = data.getPlayers().get(uuid);
+
+            if (state == null) {
+                src.sendFailure(new TextComponent("§cあなたはまだ登録されていません。"));
+                return 0;
+            }
+
+            src.sendSuccess(new TextComponent("§d=== 過去の国庫収支ログ (直近20件) ==="), false);
+            if (state.treasuryHistory == null || state.treasuryHistory.isEmpty()) {
+                src.sendSuccess(new TextComponent("§7取引履歴はまだありません。"), false);
+            } else {
+                for (int i = 0; i < state.treasuryHistory.size(); i++) {
+                    src.sendSuccess(new TextComponent("§f" + (i + 1) + ". " + state.treasuryHistory.get(i)), false);
+                }
+            }
+            src.sendSuccess(new TextComponent("§d================================="), false);
         } catch (Exception e) {
             src.sendFailure(new TextComponent("§cプレイヤーとして実行してください。"));
             return 0;

@@ -3,6 +3,7 @@ package com.example.territory.block;
 import com.example.territory.TerritorySavedData;
 import com.example.territory.network.ModMessages;
 import com.example.territory.network.PacketSyncCoreInfo;
+import com.example.territory.network.PacketSyncAuctionList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
@@ -55,6 +56,7 @@ public class CoreBlock extends Block {
         // Open Core Block GUI Screen
         if (player instanceof ServerPlayer serverPlayer) {
             ModMessages.sendToPlayer(new PacketSyncCoreInfo(pos, ownerState), serverPlayer);
+            ModMessages.sendToPlayer(new PacketSyncAuctionList(data.getAuctionList()), serverPlayer);
         }
 
         return InteractionResult.CONSUME;

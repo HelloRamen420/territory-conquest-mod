@@ -68,6 +68,7 @@ public class TerritoryTickHandler {
             if (incomeCores > 0) {
                 int earned = incomeCores * 50;
                 state.treasury += earned;
+                state.addHistory("+" + earned + "G", "不労所得自動精製 (サブコア x" + incomeCores + ")");
                 dirty = true;
 
                 // オンラインのプレイヤーに通知
@@ -102,6 +103,7 @@ public class TerritoryTickHandler {
             if (state.treasury >= upkeepCost) {
                 // Pay upkeep normally
                 state.treasury -= upkeepCost;
+                state.addHistory("-" + upkeepCost + "G", "領土維持費 (" + ownedChunks + "チャンク)");
                 data.setDirty();
 
                 // Notify player if online
@@ -117,6 +119,7 @@ public class TerritoryTickHandler {
                 // Drain whatever gold is left (even if it's less than the full cost)
                 int drained = state.treasury;
                 state.treasury = 0;
+                state.addHistory("-" + drained + "G", "領土維持費 (資金不足、残高全額没収 / " + ownedChunks + "チャンク)");
                 data.setDirty(); // ← 必ずここで保存。これがないとGが引かれない
 
                 // Find the flag furthest from core (spawnX/Y/Z is core location for this player)

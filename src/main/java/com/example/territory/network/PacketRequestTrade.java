@@ -103,8 +103,12 @@ public class PacketRequestTrade {
 
             // Add gold and track stats
             state.treasury += finalReward;
+            state.addHistory("+" + finalReward + "G", "交易売却 (" + tradeItem.name() + " x" + totalRequiredItems + ")");
+            
             if (overlordState != null && tax > 0) {
                 overlordState.treasury += tax;
+                state.addHistory("-" + tax + "G", "属国上納金 (" + overlordState.username + " へ送金)");
+                overlordState.addHistory("+" + tax + "G", "属国上納金受領 (" + state.username + " より)");
                 // Notify overlord if online
                 ServerPlayer overlordPlayer = player.getLevel().getServer().getPlayerList().getPlayer(state.overlordUuid);
                 if (overlordPlayer != null) {

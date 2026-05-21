@@ -147,8 +147,10 @@ public class CoreHpManager {
                     victimState.vassalTaxRate = 0.50; // Tax rate penalty increases to 50%
                     int penalty = (int) (victimState.treasury * 0.30); // 30% of vassal treasury confiscated
                     victimState.treasury -= penalty;
+                    victimState.addHistory("-" + penalty + "G", "反乱鎮圧ペナルティ (国庫30%没収)");
                     if (attackerState != null) {
                         attackerState.treasury += penalty;
+                        attackerState.addHistory("+" + penalty + "G", "反乱鎮圧罰金回収 (属国 " + victimState.username + " より)");
                     }
                     
                     level.getServer().getPlayerList().broadcastMessage(

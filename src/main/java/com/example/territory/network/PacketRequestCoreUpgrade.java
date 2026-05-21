@@ -215,8 +215,22 @@ public class PacketRequestCoreUpgrade {
                             net.minecraft.network.chat.ChatType.SYSTEM,
                             net.minecraft.Util.NIL_UUID
                     );
-                    break;
+                    }
+
+            String historyReason = "";
+            switch (upgradeType) {
+                case SLOWNESS: historyReason = "デバフ強化 (移動速度低下 ステージ " + state.slownessLevel + ")"; break;
+                case WEAKNESS: historyReason = "デバフ強化 (弱体化 ステージ " + state.weaknessLevel + ")"; break;
+                case MINING_FATIGUE: historyReason = "デバフ強化 (採掘速度低下 ステージ " + state.miningFatigueLevel + ")"; break;
+                case HUNGER: historyReason = "デバフ強化 (空腹 ステージ " + state.hungerLevel + ")"; break;
+                case POISON: historyReason = "デバフ強化 (虫食いアンロック)"; break;
+                case RANGE: historyReason = "国家強化 (デバフ範囲増加 +" + state.debuffRangeUpgrade + "c)"; break;
+                case ALERT: historyReason = "国家強化 (侵入アラート)"; break;
+                case DOUBLE_TRADE: historyReason = "国家強化 (売上2倍ライセンス)"; break;
+                case PASSIVE_INCOME: historyReason = "国家強化 (サブコア不労所得化)"; break;
+                case INDEPENDENCE: historyReason = "平和的独立 (独立金支払い)"; break;
             }
+            state.addHistory("-" + cost + "G", historyReason);
 
             data.setDirty();
             player.sendMessage(new TextComponent(msg), player.getUUID());

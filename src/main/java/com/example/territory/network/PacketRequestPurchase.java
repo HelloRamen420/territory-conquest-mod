@@ -62,6 +62,7 @@ public class PacketRequestPurchase {
 
             // Deduct gold
             state.treasury -= totalCost;
+            state.addHistory("-" + totalCost + "G", "アイテム購入 (" + purchaseItem.name() + " x" + amount + ")");
             data.setDirty();
 
             // Give items
