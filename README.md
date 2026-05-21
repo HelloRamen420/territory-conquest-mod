@@ -5,6 +5,10 @@
 
 ---
 
+## jarファイル
+
+[ここをクリック](https://github.com/HelloRamen420/territory-conquest-mod/blob/main/build/libs/territory-conquest-mod-1.0.0.jar)<br>（build/libs/territory-conquest-mod-1.0.0.jar）
+
 ## 📖 このMODでできること
 
 このMODは、**マルチプレイヤーで「国」を作って覇権を争う**サバイバルMODです。

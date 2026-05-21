@@ -5,5 +5,5 @@ Specification-Version: 1
 Implementation-Title: territory-conquest-mod
 Implementation-Version: 1.0.0
 Implementation-Vendor: Kirino & Antigravity
-Implementation-Timestamp: 2026-05-21T15:43:33+0900
+Implementation-Timestamp: 2026-05-21T15:49:01+0900
 

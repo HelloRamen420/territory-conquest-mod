@@ -19,7 +19,8 @@ import java.util.UUID;
 /**
  * Detects when a player moves into a new chunk and:
  * 1. Shows an action bar message indicating whose territory they entered.
- * 2. Spawns colored particles along the chunk border continuously for ~3 seconds.
+ * 2. Spawns colored particles along the chunk border continuously for ~3
+ * seconds.
  */
 @Mod.EventBusSubscriber(modid = TerritoryConquest.MOD_ID)
 public class TerritoryChunkEventHandler {
@@ -27,13 +28,15 @@ public class TerritoryChunkEventHandler {
     // Track last known chunk per player to detect chunk crossings
     private static final Map<UUID, Long> lastChunkMap = new HashMap<>();
 
-    // Track remaining ticks to display border particles: playerUUID -> [chunkLong, ticksRemaining]
+    // Track remaining ticks to display border particles: playerUUID -> [chunkLong,
+    // ticksRemaining]
     private static final Map<UUID, long[]> borderTimerMap = new HashMap<>();
 
     // Side map: playerUUID -> teamColor string for the active border display
     private static final Map<UUID, String> pendingColorMap = new HashMap<>();
 
-    // Duration (in ticks) for border display: 20 ticks = 1 second, so 60 = 3 seconds
+    // Duration (in ticks) for border display: 20 ticks = 1 second, so 60 = 3
+    // seconds
     private static final int BORDER_DISPLAY_TICKS = 60;
 
     // Particle spawn interval (every N ticks during the display period)
@@ -43,12 +46,12 @@ public class TerritoryChunkEventHandler {
     private static final Map<String, float[]> COLOR_MAP = new HashMap<>();
 
     static {
-        COLOR_MAP.put("RED",    new float[]{1.0f, 0.0f, 0.0f});
-        COLOR_MAP.put("BLUE",   new float[]{0.0f, 0.3f, 1.0f});
-        COLOR_MAP.put("GREEN",  new float[]{0.0f, 1.0f, 0.2f});
-        COLOR_MAP.put("YELLOW", new float[]{1.0f, 0.9f, 0.0f});
-        COLOR_MAP.put("PURPLE", new float[]{0.7f, 0.0f, 1.0f});
-        COLOR_MAP.put("ORANGE", new float[]{1.0f, 0.5f, 0.0f});
+        COLOR_MAP.put("RED", new float[] { 1.0f, 0.0f, 0.0f });
+        COLOR_MAP.put("BLUE", new float[] { 0.0f, 0.3f, 1.0f });
+        COLOR_MAP.put("GREEN", new float[] { 0.0f, 1.0f, 0.2f });
+        COLOR_MAP.put("YELLOW", new float[] { 1.0f, 0.9f, 0.0f });
+        COLOR_MAP.put("PURPLE", new float[] { 0.7f, 0.0f, 1.0f });
+        COLOR_MAP.put("ORANGE", new float[] { 1.0f, 0.5f, 0.0f });
     }
 
     @SubscribeEvent
@@ -63,15 +66,18 @@ public class TerritoryChunkEventHandler {
 
     @SubscribeEvent
     public static void onPlayerTick(net.minecraftforge.event.TickEvent.PlayerTickEvent event) {
-        if (event.phase != net.minecraftforge.event.TickEvent.Phase.END) return;
-        if (!(event.player instanceof ServerPlayer player)) return;
+        if (event.phase != net.minecraftforge.event.TickEvent.Phase.END)
+            return;
+        if (!(event.player instanceof ServerPlayer player))
+            return;
 
         ServerLevel level = player.getLevel();
         ChunkPos currentChunk = new ChunkPos(player.blockPosition());
         long currentChunkLong = currentChunk.toLong();
         UUID playerUuid = player.getUUID();
 
-        // === Step 1: Check if player moved to a new chunk (every 10 ticks for performance) ===
+        // === Step 1: Check if player moved to a new chunk (every 10 ticks for
+        // performance) ===
         if (player.tickCount % 10 == 0) {
             Long lastChunkLong = lastChunkMap.get(playerUuid);
             if (lastChunkLong == null || lastChunkLong != currentChunkLong) {
@@ -86,22 +92,24 @@ public class TerritoryChunkEventHandler {
                         UUID lastOwnerUuid = data.getClaimedChunks().get(lastChunkLong);
                         if (lastOwnerUuid != null) {
                             player.connection.send(new ClientboundSetActionBarTextPacket(
-                                new TextComponent("§7未開拓の土地")
-                            ));
+                                    new TextComponent("§7未開拓の土地")));
                         }
                     }
                     return;
                 }
 
                 TerritorySavedData.PlayerState ownerState = data.getPlayers().get(ownerUuid);
-                if (ownerState == null) return;
+                if (ownerState == null)
+                    return;
 
                 // Check if moving from own territory to own territory
                 if (lastChunkLong != null) {
                     UUID lastOwnerUuid = data.getClaimedChunks().get(lastChunkLong);
                     if (ownerUuid.equals(playerUuid) && playerUuid.equals(lastOwnerUuid)) {
-                        boolean holdingFlag = player.getMainHandItem().is(com.example.territory.item.ModItems.TERRITORY_FLAG_ITEM.get()) ||
-                                              player.getOffhandItem().is(com.example.territory.item.ModItems.TERRITORY_FLAG_ITEM.get());
+                        boolean holdingFlag = player.getMainHandItem()
+                                .is(com.example.territory.item.ModItems.TERRITORY_FLAG_ITEM.get()) ||
+                                player.getOffhandItem()
+                                        .is(com.example.territory.item.ModItems.TERRITORY_FLAG_ITEM.get());
                         if (!holdingFlag) {
                             return; // Skip both message and border particles
                         }
@@ -112,18 +120,17 @@ public class TerritoryChunkEventHandler {
                 boolean isOwn = ownerUuid.equals(playerUuid);
 
                 String message = isOwn
-                    ? colorCode + "【自分の領土】 " + ownerState.username + " のチャンク"
-                    : colorCode + "【" + ownerState.username + " の領土】";
+                        ? colorCode + "【自分の領土】 " + ownerState.username + " のチャンク"
+                        : colorCode + "【" + ownerState.username + " の領土】";
                 if (ownerState.isVassal) {
                     message += " §7(属国)";
                 }
 
                 // Add 2nd line with chunk coordinates
-                message += "\n" + colorCode + "チャンク座標: [" + currentChunk.x + ", " + currentChunk.z + "]";
+                message += colorCode + " : [" + currentChunk.x + ", " + currentChunk.z + "]";
 
                 player.connection.send(new ClientboundSetActionBarTextPacket(
-                    new TextComponent(message)
-                ));
+                        new TextComponent(message)));
 
                 // Start border display timer when entering any claimed chunk
                 if (lastChunkLong != null) {
@@ -134,10 +141,11 @@ public class TerritoryChunkEventHandler {
 
         // === Step 2: Continuously spawn border particles for the display duration ===
         long[] timerEntry = borderTimerMap.get(playerUuid);
-        if (timerEntry == null) return;
+        if (timerEntry == null)
+            return;
 
         long timerChunk = timerEntry[0];
-        long ticksLeft  = timerEntry[1];
+        long ticksLeft = timerEntry[1];
 
         if (ticksLeft <= 0) {
             borderTimerMap.remove(playerUuid);
@@ -157,14 +165,14 @@ public class TerritoryChunkEventHandler {
     }
 
     /**
-     * Spawns dust particles along the edges of the given chunk at the player's Y level.
+     * Spawns dust particles along the edges of the given chunk at the player's Y
+     * level.
      */
     private static void spawnChunkBorderParticles(ServerLevel level, ServerPlayer player,
-                                                   ChunkPos chunk, String teamColor) {
-        float[] color = COLOR_MAP.getOrDefault(teamColor, new float[]{1f, 1f, 1f});
+            ChunkPos chunk, String teamColor) {
+        float[] color = COLOR_MAP.getOrDefault(teamColor, new float[] { 1f, 1f, 1f });
         DustParticleOptions dustOptions = new DustParticleOptions(
-            new com.mojang.math.Vector3f(color[0], color[1], color[2]), 1.2f
-        );
+                new com.mojang.math.Vector3f(color[0], color[1], color[2]), 1.2f);
 
         int minX = chunk.getMinBlockX();
         int maxX = chunk.getMaxBlockX();
@@ -186,11 +194,12 @@ public class TerritoryChunkEventHandler {
     }
 
     /**
-     * Public API: Start showing border particles for a given player / chunk / team color.
+     * Public API: Start showing border particles for a given player / chunk / team
+     * color.
      * Called from TerritoryPlacementEventHandler when a flag is placed.
      */
     public static void startBorderDisplay(UUID playerUuid, long chunkLong, String teamColor) {
-        borderTimerMap.put(playerUuid, new long[]{ chunkLong, BORDER_DISPLAY_TICKS });
+        borderTimerMap.put(playerUuid, new long[] { chunkLong, BORDER_DISPLAY_TICKS });
         pendingColorMap.put(playerUuid, teamColor);
     }
 
@@ -200,13 +209,13 @@ public class TerritoryChunkEventHandler {
 
     private static String teamColorToCode(String teamColor) {
         return switch (teamColor) {
-            case "RED"    -> "§c";
-            case "BLUE"   -> "§9";
-            case "GREEN"  -> "§a";
+            case "RED" -> "§c";
+            case "BLUE" -> "§9";
+            case "GREEN" -> "§a";
             case "YELLOW" -> "§e";
             case "PURPLE" -> "§5";
             case "ORANGE" -> "§6";
-            default       -> "§f";
+            default -> "§f";
         };
     }
 }
