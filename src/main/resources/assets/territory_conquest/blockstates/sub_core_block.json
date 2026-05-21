@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "territory_conquest:block/sub_core_block" }
+  }
+}

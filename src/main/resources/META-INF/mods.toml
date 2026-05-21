@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="[40,)"
+license="MIT"
+
+[[mods]]
+modId="territory_conquest"
+version="1.0.0"
+displayName="Territory Conquest Mod"
+description='''
+A chunk-based PvP territory conquest mod.
+'''
+authors="Kirino & Antigravity"
+
+[[dependencies.territory_conquest]]
+    modId="forge"
+    mandatory=true
+    versionRange="[40,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.territory_conquest]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.18.2,1.19)"
+    ordering="NONE"
+    side="BOTH"

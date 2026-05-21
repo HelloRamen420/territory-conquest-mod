@@ -1,0 +1,6 @@
+{
+  "parent": "block/cross",
+  "textures": {
+    "cross": "territory_conquest:block/territory_flag"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "territory_conquest:block/core_block"
+  }
+}

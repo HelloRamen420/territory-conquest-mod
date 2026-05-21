@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "territory_conquest:block/territory_flag"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Specification-Title: territory_conquest
+Specification-Vendor: Kirino & Antigravity
+Specification-Version: 1
+Implementation-Title: territory-conquest-mod
+Implementation-Version: 1.0.0
+Implementation-Vendor: Kirino & Antigravity
+Implementation-Timestamp: 2026-05-21T10:36:44+0900
+

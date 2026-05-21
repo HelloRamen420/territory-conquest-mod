@@ -1,0 +1,8 @@
+{
+  "block.territory_conquest.core_block": "メインコア",
+  "item.territory_conquest.core_block": "メインコア",
+  "block.territory_conquest.sub_core_block": "サブコア",
+  "item.territory_conquest.sub_core_block": "サブコア",
+  "block.territory_conquest.territory_flag": "開拓の旗",
+  "item.territory_conquest.territory_flag": "開拓の旗"
+}

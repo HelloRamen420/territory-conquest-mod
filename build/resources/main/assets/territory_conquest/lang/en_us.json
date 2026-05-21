@@ -1,0 +1,9 @@
+{
+  "block.territory_conquest.core_block": "Territory Core",
+  "item.territory_conquest.core_block": "Territory Core",
+  "block.territory_conquest.sub_core_block": "Sub Core",
+  "item.territory_conquest.sub_core_block": "Sub Core",
+  "block.territory_conquest.territory_flag": "Territory Flag",
+  "item.territory_conquest.territory_flag": "Territory Flag"
+}
+
