@@ -38,6 +38,12 @@ public class ExchangeScreen extends Screen {
     private static final TradeManager.TradeItem[] SELL_ITEMS = TradeManager.TradeItem.values();
     private static final TradeManager.PurchaseItem[] BUY_ITEMS = TradeManager.PurchaseItem.values();
 
+    private static final int VISIBLE_ROWS = 6;
+    private int scrollOffset = 0;
+    private Button upScrollButton;
+    private Button downScrollButton;
+    private final Button[] listButtons = new Button[VISIBLE_ROWS];
+
     public ExchangeScreen(BlockPos corePos, int treasury, int ironSold, int goldSold, int emeraldSold, Screen parentScreen) {
         super(new TextComponent("総合取引所"));
         this.corePos = corePos;
@@ -67,10 +73,14 @@ public class ExchangeScreen extends Screen {
         // Tabs
         tabSellButton = new Button(left + 10, top + 25, 110, 20, new TextComponent("買取 (アイテム売却)"), btn -> {
             isBuyMode = false;
+            scrollOffset = 0;
+            updateScrollLimits();
             updateControls();
         });
         tabBuyButton = new Button(left + 130, top + 25, 110, 20, new TextComponent("購入 (アイテム購入)"), btn -> {
             isBuyMode = true;
+            scrollOffset = 0;
+            updateScrollLimits();
             updateControls();
         });
         this.addRenderableWidget(tabSellButton);
@@ -89,11 +99,22 @@ public class ExchangeScreen extends Screen {
             Minecraft.getInstance().setScreen(parentScreen);
         }));
 
+        // Scroll buttons
+        upScrollButton = new Button(left + 110, top + 55, 10, 20, new TextComponent("▲"), btn -> {
+            scrollUp();
+        });
+        downScrollButton = new Button(left + 110, top + 155, 10, 20, new TextComponent("▼"), btn -> {
+            scrollDown();
+        });
+        this.addRenderableWidget(upScrollButton);
+        this.addRenderableWidget(downScrollButton);
+
         // Lists (we use invisible buttons for the list area and draw the text ourselves)
         // For simplicity in this mock-villager UI, we add buttons for all items and toggle their visibility
-        for (int i = 0; i < Math.max(SELL_ITEMS.length, BUY_ITEMS.length); i++) {
-            final int index = i;
-            Button listBtn = new Button(left + 10, top + 55 + (i * 20), 100, 20, new TextComponent(""), btn -> {
+        for (int i = 0; i < VISIBLE_ROWS; i++) {
+            final int row = i;
+            listButtons[row] = new Button(left + 10, top + 55 + (row * 20), 100, 20, new TextComponent(""), btn -> {
+                int index = scrollOffset + row;
                 if (isBuyMode) {
                     if (index < BUY_ITEMS.length) selectedBuyIndex = index;
                 } else {
@@ -103,30 +124,48 @@ public class ExchangeScreen extends Screen {
             }) {
                 @Override
                 public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-                    if (isBuyMode && index >= BUY_ITEMS.length) return;
-                    if (!isBuyMode && index >= SELL_ITEMS.length) return;
-                    
-                    String label = isBuyMode ? getBuyItemName(BUY_ITEMS[index]) : getSellItemName(SELL_ITEMS[index]);
-                    this.setMessage(new TextComponent(label));
-                    super.renderButton(poseStack, mouseX, mouseY, partialTicks);
-                }
-                
-                @Override
-                public boolean mouseClicked(double mouseX, double mouseY, int button) {
-                    if (isBuyMode && index >= BUY_ITEMS.length) return false;
-                    if (!isBuyMode && index >= SELL_ITEMS.length) return false;
-                    return super.mouseClicked(mouseX, mouseY, button);
+                    int index = scrollOffset + row;
+                    int totalItems = isBuyMode ? BUY_ITEMS.length : SELL_ITEMS.length;
+                    if (index < totalItems) {
+                        String label = isBuyMode ? getBuyItemName(BUY_ITEMS[index]) : getSellItemName(SELL_ITEMS[index]);
+                        this.setMessage(new TextComponent(label));
+                        super.renderButton(poseStack, mouseX, mouseY, partialTicks);
+                    }
                 }
             };
-            this.addRenderableWidget(listBtn);
+            this.addRenderableWidget(listButtons[row]);
         }
 
+        updateScrollLimits();
         updateControls();
     }
 
     private void updateControls() {
         tabSellButton.active = isBuyMode;
         tabBuyButton.active = !isBuyMode;
+
+        int totalItems = isBuyMode ? BUY_ITEMS.length : SELL_ITEMS.length;
+
+        if (listButtons != null) {
+            for (int i = 0; i < VISIBLE_ROWS; i++) {
+                if (listButtons[i] != null) {
+                    int index = scrollOffset + i;
+                    boolean isVisible = index < totalItems;
+                    listButtons[i].visible = isVisible;
+                    listButtons[i].active = isVisible;
+                }
+            }
+        }
+
+        if (upScrollButton != null && downScrollButton != null) {
+            int maxOffset = Math.max(0, totalItems - VISIBLE_ROWS);
+            upScrollButton.active = scrollOffset > 0;
+            downScrollButton.active = scrollOffset < maxOffset;
+            
+            boolean needsScrolling = totalItems > VISIBLE_ROWS;
+            upScrollButton.visible = needsScrolling;
+            downScrollButton.visible = needsScrolling;
+        }
 
         int maxTrades = getMaxTrades();
         if (maxTrades <= 0) {
@@ -187,6 +226,29 @@ public class ExchangeScreen extends Screen {
         font.draw(poseStack, "国庫取引所 (総合)", left + 10, top + 10, 0xFFD700);
         font.draw(poseStack, "現在国庫: " + treasury + "G", left + 140, top + 10, 0xFFFFFF);
 
+        // Draw scrollbar track and thumb
+        int totalItems = isBuyMode ? BUY_ITEMS.length : SELL_ITEMS.length;
+        if (totalItems > VISIBLE_ROWS) {
+            int maxOffset = Math.max(0, totalItems - VISIBLE_ROWS);
+            
+            int trackX = left + 113;
+            int trackY = top + 77;
+            int trackWidth = 4;
+            int trackHeight = 76;
+            
+            // Track background
+            fill(poseStack, trackX, trackY, trackX + trackWidth, trackY + trackHeight, 0xFF333333);
+            
+            int thumbHeight = Math.max(15, trackHeight * VISIBLE_ROWS / totalItems);
+            if (thumbHeight > trackHeight) {
+                thumbHeight = trackHeight;
+            }
+            int thumbYOffset = maxOffset > 0 ? (scrollOffset * (trackHeight - thumbHeight) / maxOffset) : 0;
+            
+            // Thumb
+            fill(poseStack, trackX, trackY + thumbYOffset, trackX + trackWidth, trackY + thumbYOffset + thumbHeight, 0xFFDAA520);
+        }
+
         int rightX = left + 120;
         int rightY = top + 55;
 
@@ -196,7 +258,10 @@ public class ExchangeScreen extends Screen {
             TradeManager.PurchaseItem selectedItem = BUY_ITEMS[selectedBuyIndex];
             int price = TradeManager.getPurchasePrice(selectedItem);
             
-            fill(poseStack, left + 8, top + 53 + (selectedBuyIndex * 20), left + 112, top + 75 + (selectedBuyIndex * 20), 0x55FFFFFF);
+            int displayRow = selectedBuyIndex - scrollOffset;
+            if (displayRow >= 0 && displayRow < VISIBLE_ROWS) {
+                fill(poseStack, left + 8, top + 53 + (displayRow * 20), left + 112, top + 75 + (displayRow * 20), 0x55FFFFFF);
+            }
             
             font.draw(poseStack, "選択中: " + getBuyItemName(selectedItem), rightX, rightY, 0xFFFFFF);
             font.draw(poseStack, "価格: " + price + " G / 1個", rightX, rightY + 20, 0xAAAAAA);
@@ -211,7 +276,10 @@ public class ExchangeScreen extends Screen {
             TradeManager.TradeItem selectedItem = SELL_ITEMS[selectedSellIndex];
             TradeManager.TradeRate rate = TradeManager.getCurrentRate(selectedItem, mockState);
             
-            fill(poseStack, left + 8, top + 53 + (selectedSellIndex * 20), left + 112, top + 75 + (selectedSellIndex * 20), 0x55FFFFFF);
+            int displayRow = selectedSellIndex - scrollOffset;
+            if (displayRow >= 0 && displayRow < VISIBLE_ROWS) {
+                fill(poseStack, left + 8, top + 53 + (displayRow * 20), left + 112, top + 75 + (displayRow * 20), 0x55FFFFFF);
+            }
             
             font.draw(poseStack, "選択中: " + getSellItemName(selectedItem), rightX, rightY, 0xFFFFFF);
             int soldCount = getSoldCount(selectedItem);
@@ -301,6 +369,43 @@ public class ExchangeScreen extends Screen {
             updateControls();
         }
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+        boolean isHoveringList = mouseX >= (left + 10) && mouseX <= (left + 120) && mouseY >= (top + 55) && mouseY <= (top + 175);
+        if (isHoveringList) {
+            if (delta > 0) {
+                scrollUp();
+            } else if (delta < 0) {
+                scrollDown();
+            }
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, delta);
+    }
+
+    private void scrollUp() {
+        scrollOffset--;
+        updateScrollLimits();
+        updateControls();
+    }
+
+    private void scrollDown() {
+        scrollOffset++;
+        updateScrollLimits();
+        updateControls();
+    }
+
+    private void updateScrollLimits() {
+        int totalItems = isBuyMode ? BUY_ITEMS.length : SELL_ITEMS.length;
+        int maxOffset = Math.max(0, totalItems - VISIBLE_ROWS);
+        if (scrollOffset > maxOffset) {
+            scrollOffset = maxOffset;
+        }
+        if (scrollOffset < 0) {
+            scrollOffset = 0;
+        }
     }
 
     @Override

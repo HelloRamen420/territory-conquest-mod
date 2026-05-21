@@ -82,6 +82,13 @@ public class TerritoryPlacementEventHandler {
                 return;
             }
 
+            // E. Limit SubCores to 3 per player
+            if (playerState.subCores.size() >= 3) {
+                event.setCanceled(true);
+                player.sendMessage(new TextComponent("§cサブコアは1プレイヤーにつき3つまでしか設置できません！"), playerUuid);
+                return;
+            }
+
             // All checks passed! Register the subcore
             playerState.subCores.add(pos);
             data.setDirty();
