@@ -48,6 +48,40 @@ public class TerritoryTickHandler {
             data.setLastProcessedDay(currentDay);
             processUpkeep(level);
         }
+
+        // 5分ごと (6000 ticks) に不労所得サブコアのゴールド自動生産を処理
+        long gameTime = level.getGameTime();
+        if (gameTime > 0 && gameTime % 6000 == 0) {
+            processPassiveIncome(level);
+        }
+    }
+
+    private static void processPassiveIncome(ServerLevel level) {
+        TerritorySavedData data = TerritorySavedData.get(level);
+        boolean dirty = false;
+
+        for (Map.Entry<UUID, TerritorySavedData.PlayerState> entry : data.getPlayers().entrySet()) {
+            UUID playerUuid = entry.getKey();
+            TerritorySavedData.PlayerState state = entry.getValue();
+
+            int incomeCores = state.passiveIncomeSubCores.size();
+            if (incomeCores > 0) {
+                int earned = incomeCores * 50;
+                state.treasury += earned;
+                dirty = true;
+
+                // オンラインのプレイヤーに通知
+                ServerPlayer player = level.getServer().getPlayerList().getPlayer(playerUuid);
+                if (player != null) {
+                    player.sendMessage(new TextComponent(
+                            "§a§l[不労所得] 自動精製サブコア (" + incomeCores + "台) から " + earned + "G を回収しました！ (残高: " + state.treasury + "G)"
+                    ), playerUuid);
+                }
+            }
+        }
+        if (dirty) {
+            data.setDirty();
+        }
     }
 
     private static void processUpkeep(ServerLevel level) {

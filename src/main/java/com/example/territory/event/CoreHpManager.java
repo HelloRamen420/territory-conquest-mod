@@ -85,13 +85,36 @@ public class CoreHpManager {
             ownerUuid = data.getClaimedChunks().get(chunkPos.toLong());
         }
 
-        if (ownerUuid == null) return; // No owner, let it break
+        if (ownerUuid == null) return; // Owner not found, let it break
 
         // Cannot break your own cores
         if (ownerUuid.equals(player.getUUID())) {
             event.setCanceled(true);
             player.sendMessage(new TextComponent("§c自分のコアは破壊できません。"), player.getUUID());
             return;
+        }
+
+        // Revolution / vassal attack restrictions check
+        TerritorySavedData.PlayerState attackerState = data.getPlayers().get(player.getUUID());
+        TerritorySavedData.PlayerState victimState = data.getPlayers().get(ownerUuid);
+
+        if (attackerState != null && victimState != null) {
+            // If the defender is suzerain (overlord) of the attacker (the player is vassal)
+            if (attackerState.isVassal && ownerUuid.equals(attackerState.overlordUuid)) {
+                if (!attackerState.isRebelling) {
+                    event.setCanceled(true);
+                    player.sendMessage(new TextComponent("§c宗主国のコアは反乱中でなければ攻撃できません。 (/territory rebel で反乱宣言できます)"), player.getUUID());
+                    return;
+                }
+            }
+            // If the defender is a vassal of the attacker (the player is suzerain)
+            if (victimState.isVassal && player.getUUID().equals(victimState.overlordUuid)) {
+                if (!victimState.isRebelling) {
+                    event.setCanceled(true);
+                    player.sendMessage(new TextComponent("§c属国が反乱を起こしていないため、攻撃できません。"), player.getUUID());
+                    return;
+                }
+            }
         }
 
         // Handle HP system
@@ -112,8 +135,82 @@ public class CoreHpManager {
             // Update boss bars immediately
             updateBossBarsForCore(level, pos, isSubCore);
         } else {
-            // Last hit! Let the block break normally
+            // Last hit!
+            event.setCanceled(true); // Cancel physical destruction to control core survival or subcore clean-up
             removeHp(pos);
+            
+            if (isMainCore) {
+                // Main Core Broken -> Triggers vassalage or rebellion resolution
+                if (victimState != null && victimState.isVassal && player.getUUID().equals(victimState.overlordUuid)) {
+                    // Case C: Suzerain defeats rebelling vassal's core (Suppression)
+                    victimState.isRebelling = false;
+                    victimState.vassalTaxRate = 0.50; // Tax rate penalty increases to 50%
+                    int penalty = (int) (victimState.treasury * 0.30); // 30% of vassal treasury confiscated
+                    victimState.treasury -= penalty;
+                    if (attackerState != null) {
+                        attackerState.treasury += penalty;
+                    }
+                    
+                    level.getServer().getPlayerList().broadcastMessage(
+                            new TextComponent("§c§l[革命鎮圧] §e" + player.getScoreboardName() + " は " + victimState.username + " の反乱を鎮圧しました！ (税率が50%に引き上げられ、罰金 " + penalty + "G が没収されました)"),
+                            net.minecraft.network.chat.ChatType.SYSTEM,
+                            net.minecraft.Util.NIL_UUID
+                    );
+                    
+                    // Core remains intact with 1 HP
+                    CORE_HP.put(pos.asLong(), 1);
+                } 
+                else if (attackerState != null && attackerState.isVassal && ownerUuid.equals(attackerState.overlordUuid)) {
+                    // Case B: Vassal defeats suzerain's core (Rebellion Success -> Independence)
+                    attackerState.isVassal = false;
+                    attackerState.overlordUuid = null;
+                    attackerState.isRebelling = false;
+                    attackerState.vassalTaxRate = 0.25; // Reset tax rate
+                    
+                    level.getServer().getPlayerList().broadcastMessage(
+                            new TextComponent("§a§l[革命成功] §e" + player.getScoreboardName() + " は反乱に成功し、宗主国 " + victimState.username + " の支配から脱して独立しました！"),
+                            net.minecraft.network.chat.ChatType.SYSTEM,
+                            net.minecraft.Util.NIL_UUID
+                    );
+                    
+                    // Reset suzerain's core to full HP
+                    CORE_HP.put(pos.asLong(), MAX_MAIN_CORE_HP);
+                } 
+                else {
+                    // Case A: Standard core destruction -> Forced Vassalage
+                    if (victimState != null) {
+                        victimState.isVassal = true;
+                        victimState.overlordUuid = player.getUUID();
+                        victimState.vassalTaxRate = 0.25; // Initial 25% tax
+                        victimState.isRebelling = false;
+                        
+                        level.getServer().getPlayerList().broadcastMessage(
+                                new TextComponent("§c§l[革命・属国化] §e" + victimState.username + " は " + player.getScoreboardName() + " に降伏し、属国となりました！"),
+                                net.minecraft.network.chat.ChatType.SYSTEM,
+                                net.minecraft.Util.NIL_UUID
+                        );
+                        
+                        // Core remains as Vassal Core with 1 HP
+                        CORE_HP.put(pos.asLong(), 1);
+                    }
+                }
+            } else {
+                // Sub Core Broken -> Physically destroy sub-core block and clear from state
+                event.setCanceled(false); // Allow physical block break for subcore
+                if (victimState != null) {
+                    victimState.subCores.remove(pos);
+                    victimState.passiveIncomeSubCores.remove(pos);
+                }
+                
+                level.getServer().getPlayerList().broadcastMessage(
+                        new TextComponent("§c§l[破壊] §e" + (victimState != null ? victimState.username : "不明") + " のサブコアが " + player.getScoreboardName() + " によって破壊されました！"),
+                        net.minecraft.network.chat.ChatType.SYSTEM,
+                        net.minecraft.Util.NIL_UUID
+                );
+            }
+
+            data.setDirty();
+            
             // Clean up player boss bars viewing this core
             long posLong = pos.asLong();
             for (UUID pUuid : new java.util.ArrayList<>(PLAYER_CURRENT_CORE.keySet())) {

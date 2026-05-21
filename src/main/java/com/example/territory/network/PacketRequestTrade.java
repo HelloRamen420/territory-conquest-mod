@@ -84,7 +84,36 @@ public class PacketRequestTrade {
             }
 
             // Add gold and track stats
-            state.treasury += totalReward;
+            // 1. Double Gold Upgrade
+            if (state.doubleTradeLicense) {
+                totalReward *= 2;
+            }
+
+            // 2. Vassal Tax / Overlord auto-wire
+            int finalReward = totalReward;
+            int tax = 0;
+            TerritorySavedData.PlayerState overlordState = null;
+            if (state.isVassal && !state.isRebelling && state.overlordUuid != null) {
+                overlordState = data.getPlayers().get(state.overlordUuid);
+                if (overlordState != null) {
+                    tax = (int) (totalReward * state.vassalTaxRate);
+                    finalReward = totalReward - tax;
+                }
+            }
+
+            // Add gold and track stats
+            state.treasury += finalReward;
+            if (overlordState != null && tax > 0) {
+                overlordState.treasury += tax;
+                // Notify overlord if online
+                ServerPlayer overlordPlayer = player.getLevel().getServer().getPlayerList().getPlayer(state.overlordUuid);
+                if (overlordPlayer != null) {
+                    overlordPlayer.sendMessage(new TextComponent(
+                            "§e§l[税金徴収] 属国 " + state.username + " の交易により、上納金として " + tax + "G が国庫に納付されました！"
+                    ), state.overlordUuid);
+                }
+            }
+
             switch (tradeItem) {
                 case IRON: state.totalIronSold += totalRequiredItems; break;
                 case GOLD: state.totalGoldSold += totalRequiredItems; break;
@@ -93,7 +122,13 @@ public class PacketRequestTrade {
             }
             data.setDirty();
 
-            player.sendMessage(new TextComponent("§a✔ 交易成功！ (+" + totalReward + "G, 現在: " + state.treasury + "G)"), player.getUUID());
+            if (overlordState != null && tax > 0) {
+                player.sendMessage(new TextComponent("§a✔ 交易成功！ §c(上納金として " + tax + "G が宗主国 " + overlordState.username + " へ送金されました。受取: " + finalReward + "G, 現在: " + state.treasury + "G)"), player.getUUID());
+            } else if (state.isVassal && state.isRebelling) {
+                player.sendMessage(new TextComponent("§a✔ 交易成功！ §e(反乱中のため上納は保留されました。受取: " + totalReward + "G, 現在: " + state.treasury + "G)"), player.getUUID());
+            } else {
+                player.sendMessage(new TextComponent("§a✔ 交易成功！ (+" + totalReward + "G, 現在: " + state.treasury + "G)"), player.getUUID());
+            }
             player.level.playSound(null, corePos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 1.0f, 1.2f);
 
             // Sync updated state back to client to refresh screen in real-time
@@ -108,16 +143,7 @@ public class PacketRequestTrade {
                         state.totalEmeraldSold
                 ), player);
             } else {
-                ModMessages.sendToPlayer(new PacketSyncCoreInfo(
-                        corePos,
-                        state.username,
-                        state.teamColor,
-                        state.debuffLevel,
-                        state.treasury,
-                        state.totalIronSold,
-                        state.totalGoldSold,
-                        state.totalEmeraldSold
-                ), player);
+                ModMessages.sendToPlayer(new PacketSyncCoreInfo(corePos, state), player);
             }
         });
         return true;

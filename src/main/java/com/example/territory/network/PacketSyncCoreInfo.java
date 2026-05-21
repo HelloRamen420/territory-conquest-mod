@@ -1,5 +1,6 @@
 package com.example.territory.network;
 
+import com.example.territory.TerritorySavedData;
 import com.example.territory.client.gui.CoreBlockScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -14,13 +15,58 @@ public class PacketSyncCoreInfo {
     public final BlockPos corePos;
     public final String ownerName;
     public final String teamColor;
-    public final int debuffLevel;
+    public final int debuffLevel; // Legacy
     public final int treasury;
     public final int totalIronSold;
     public final int totalGoldSold;
     public final int totalEmeraldSold;
 
-    public PacketSyncCoreInfo(BlockPos corePos, String ownerName, String teamColor, int debuffLevel, int treasury, int ironSold, int goldSold, int emeraldSold) {
+    // --- New v1.1.0 status variables ---
+    public final int slownessLevel;
+    public final int weaknessLevel;
+    public final int miningFatigueLevel;
+    public final int hungerLevel;
+    public final int poisonLevel;
+    
+    public final boolean isVassal;
+    public final boolean isRebelling;
+    public final double vassalTaxRate;
+    
+    public final int debuffRangeUpgrade;
+    public final boolean hasAlertUpgrade;
+    public final boolean doubleTradeLicense;
+    public final int passiveIncomeCount;
+
+    public PacketSyncCoreInfo(BlockPos corePos, TerritorySavedData.PlayerState state) {
+        this(
+            corePos,
+            state.username,
+            state.teamColor,
+            state.debuffLevel,
+            state.treasury,
+            state.totalIronSold,
+            state.totalGoldSold,
+            state.totalEmeraldSold,
+            state.slownessLevel,
+            state.weaknessLevel,
+            state.miningFatigueLevel,
+            state.hungerLevel,
+            state.poisonLevel,
+            state.isVassal,
+            state.isRebelling,
+            state.vassalTaxRate,
+            state.debuffRangeUpgrade,
+            state.hasAlertUpgrade,
+            state.doubleTradeLicense,
+            state.passiveIncomeSubCores.size()
+        );
+    }
+
+    public PacketSyncCoreInfo(BlockPos corePos, String ownerName, String teamColor, int debuffLevel, int treasury, 
+                              int ironSold, int goldSold, int emeraldSold,
+                              int slownessLevel, int weaknessLevel, int miningFatigueLevel, int hungerLevel, int poisonLevel,
+                              boolean isVassal, boolean isRebelling, double vassalTaxRate,
+                              int debuffRangeUpgrade, boolean hasAlertUpgrade, boolean doubleTradeLicense, int passiveIncomeCount) {
         this.corePos = corePos;
         this.ownerName = ownerName;
         this.teamColor = teamColor;
@@ -29,6 +75,19 @@ public class PacketSyncCoreInfo {
         this.totalIronSold = ironSold;
         this.totalGoldSold = goldSold;
         this.totalEmeraldSold = emeraldSold;
+        
+        this.slownessLevel = slownessLevel;
+        this.weaknessLevel = weaknessLevel;
+        this.miningFatigueLevel = miningFatigueLevel;
+        this.hungerLevel = hungerLevel;
+        this.poisonLevel = poisonLevel;
+        this.isVassal = isVassal;
+        this.isRebelling = isRebelling;
+        this.vassalTaxRate = vassalTaxRate;
+        this.debuffRangeUpgrade = debuffRangeUpgrade;
+        this.hasAlertUpgrade = hasAlertUpgrade;
+        this.doubleTradeLicense = doubleTradeLicense;
+        this.passiveIncomeCount = passiveIncomeCount;
     }
 
     public PacketSyncCoreInfo(FriendlyByteBuf buf) {
@@ -40,6 +99,19 @@ public class PacketSyncCoreInfo {
         this.totalIronSold = buf.readInt();
         this.totalGoldSold = buf.readInt();
         this.totalEmeraldSold = buf.readInt();
+        
+        this.slownessLevel = buf.readInt();
+        this.weaknessLevel = buf.readInt();
+        this.miningFatigueLevel = buf.readInt();
+        this.hungerLevel = buf.readInt();
+        this.poisonLevel = buf.readInt();
+        this.isVassal = buf.readBoolean();
+        this.isRebelling = buf.readBoolean();
+        this.vassalTaxRate = buf.readDouble();
+        this.debuffRangeUpgrade = buf.readInt();
+        this.hasAlertUpgrade = buf.readBoolean();
+        this.doubleTradeLicense = buf.readBoolean();
+        this.passiveIncomeCount = buf.readInt();
     }
 
     public void toBytes(FriendlyByteBuf buf) {
@@ -51,6 +123,19 @@ public class PacketSyncCoreInfo {
         buf.writeInt(totalIronSold);
         buf.writeInt(totalGoldSold);
         buf.writeInt(totalEmeraldSold);
+        
+        buf.writeInt(slownessLevel);
+        buf.writeInt(weaknessLevel);
+        buf.writeInt(miningFatigueLevel);
+        buf.writeInt(hungerLevel);
+        buf.writeInt(poisonLevel);
+        buf.writeBoolean(isVassal);
+        buf.writeBoolean(isRebelling);
+        buf.writeDouble(vassalTaxRate);
+        buf.writeInt(debuffRangeUpgrade);
+        buf.writeBoolean(hasAlertUpgrade);
+        buf.writeBoolean(doubleTradeLicense);
+        buf.writeInt(passiveIncomeCount);
     }
 
     public boolean handle(Supplier<NetworkEvent.Context> supplier) {

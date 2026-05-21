@@ -42,6 +42,8 @@ public class TerritoryCommand {
                 .then(Commands.literal("start")
                     .requires(src -> src.hasPermission(2))
                     .executes(TerritoryCommand::executeStart))
+                .then(Commands.literal("rebel")
+                    .executes(TerritoryCommand::executeRebel))
         );
     }
 
@@ -187,6 +189,61 @@ public class TerritoryCommand {
             p.playNotifySound(net.minecraft.sounds.SoundEvents.END_PORTAL_SPAWN, net.minecraft.sounds.SoundSource.NEUTRAL, 1.0f, 1.0f);
         }
 
+        return 1;
+    }
+
+    /** /territory rebel - Declare rebellion against your overlord */
+    private static int executeRebel(CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack src = ctx.getSource();
+        try {
+            ServerPlayer player = src.getPlayerOrException();
+            ServerLevel overworld = src.getServer().getLevel(Level.OVERWORLD);
+            if (overworld == null) return 0;
+
+            TerritorySavedData data = TerritorySavedData.get(overworld);
+            TerritorySavedData.PlayerState state = data.getPlayers().get(player.getUUID());
+
+            if (state == null) {
+                src.sendFailure(new TextComponent("§cあなたは登録されていません。"));
+                return 0;
+            }
+
+            if (!state.isVassal || state.overlordUuid == null) {
+                src.sendFailure(new TextComponent("§cあなたは独立国です。反乱を起こすことはできません。"));
+                return 0;
+            }
+
+            if (state.isRebelling) {
+                src.sendFailure(new TextComponent("§cあなたはすでに反乱状態（独立戦争中）です！"));
+                return 0;
+            }
+
+            TerritorySavedData.PlayerState overlord = data.getPlayers().get(state.overlordUuid);
+            String overlordName = overlord != null ? overlord.username : "不明";
+
+            // Set rebellion flag to true
+            state.isRebelling = true;
+            data.setDirty();
+
+            // Broadcast message
+            src.getServer().getPlayerList().broadcastMessage(
+                new TextComponent("§c§l⚡⚡ [革命宣言] §e" + player.getScoreboardName() + " §cが宗主国 §e" + overlordName + " §cに対し反乱を宣言し、独立戦争を開始しました！ ⚡⚡"),
+                net.minecraft.network.chat.ChatType.SYSTEM,
+                net.minecraft.Util.NIL_UUID
+            );
+
+            // Play scary growl sounds
+            player.playNotifySound(net.minecraft.sounds.SoundEvents.ENDER_DRAGON_GROWL, net.minecraft.sounds.SoundSource.PLAYERS, 1.0f, 1.0f);
+            
+            ServerPlayer overlordPlayer = src.getServer().getPlayerList().getPlayer(state.overlordUuid);
+            if (overlordPlayer != null) {
+                overlordPlayer.playNotifySound(net.minecraft.sounds.SoundEvents.ENDER_DRAGON_GROWL, net.minecraft.sounds.SoundSource.PLAYERS, 1.0f, 1.0f);
+            }
+
+        } catch (Exception e) {
+            src.sendFailure(new TextComponent("§cプレイヤーとして実行してください。"));
+            return 0;
+        }
         return 1;
     }
 

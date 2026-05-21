@@ -91,16 +91,7 @@ public class PacketRequestPurchase {
                         state.totalEmeraldSold
                 ), player);
             } else {
-                ModMessages.sendToPlayer(new PacketSyncCoreInfo(
-                        corePos,
-                        state.username,
-                        state.teamColor,
-                        state.debuffLevel,
-                        state.treasury,
-                        state.totalIronSold,
-                        state.totalGoldSold,
-                        state.totalEmeraldSold
-                ), player);
+                ModMessages.sendToPlayer(new PacketSyncCoreInfo(corePos, state), player);
             }
         });
         return true;

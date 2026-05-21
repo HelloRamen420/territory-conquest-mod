@@ -27,12 +27,27 @@ public class TerritorySavedData extends SavedData {
         public boolean isVassal;
         public UUID overlordUuid;
         public int treasury = 1000; // 1000G initially for testing
-        public int debuffLevel = 0;
+        public int debuffLevel = 0; // Legacy or unused, keep for compatibility
         public List<BlockPos> subCores = new ArrayList<>();
         public List<BlockPos> flags = new ArrayList<>();
         public int totalIronSold = 0;
         public int totalGoldSold = 0;
         public int totalEmeraldSold = 0;
+
+        // --- New v1.1.0 Fields ---
+        public int slownessLevel = 0;       // 0 to 3
+        public int weaknessLevel = 0;       // 0 to 2
+        public int miningFatigueLevel = 0;  // 0 to 3
+        public int hungerLevel = 0;         // 0 to 2
+        public int poisonLevel = 0;         // 0 to 1
+        
+        public boolean isRebelling = false;
+        public double vassalTaxRate = 0.25; // 0.25 (25%) or 0.50 (50%)
+        
+        public int debuffRangeUpgrade = 0;  // Debuff range = 3 + debuffRangeUpgrade chunks
+        public boolean hasAlertUpgrade = false;
+        public boolean doubleTradeLicense = false;
+        public List<BlockPos> passiveIncomeSubCores = new ArrayList<>();
 
         public CompoundTag toNBT() {
             CompoundTag tag = new CompoundTag();
@@ -51,6 +66,29 @@ public class TerritorySavedData extends SavedData {
             if (overlordUuid != null) {
                 tag.putUUID("overlordUuid", overlordUuid);
             }
+            
+            // v1.1.0 upgrades
+            tag.putInt("slownessLevel", slownessLevel);
+            tag.putInt("weaknessLevel", weaknessLevel);
+            tag.putInt("miningFatigueLevel", miningFatigueLevel);
+            tag.putInt("hungerLevel", hungerLevel);
+            tag.putInt("poisonLevel", poisonLevel);
+            tag.putBoolean("isRebelling", isRebelling);
+            tag.putDouble("vassalTaxRate", vassalTaxRate);
+            tag.putInt("debuffRangeUpgrade", debuffRangeUpgrade);
+            tag.putBoolean("hasAlertUpgrade", hasAlertUpgrade);
+            tag.putBoolean("doubleTradeLicense", doubleTradeLicense);
+
+            // passiveIncomeSubCores Serialization
+            ListTag passiveIncomeTag = new ListTag();
+            for (BlockPos pos : passiveIncomeSubCores) {
+                CompoundTag posTag = new CompoundTag();
+                posTag.putInt("x", pos.getX());
+                posTag.putInt("y", pos.getY());
+                posTag.putInt("z", pos.getZ());
+                passiveIncomeTag.add(posTag);
+            }
+            tag.put("passiveIncomeSubCores", passiveIncomeTag);
             
             // Serialize SubCores List
             ListTag subCoresTag = new ListTag();
@@ -93,6 +131,32 @@ public class TerritorySavedData extends SavedData {
             state.totalEmeraldSold = tag.getInt("totalEmeraldSold");
             if (tag.hasUUID("overlordUuid")) {
                 state.overlordUuid = tag.getUUID("overlordUuid");
+            }
+            
+            // v1.1.0 upgrades
+            state.slownessLevel = tag.getInt("slownessLevel");
+            state.weaknessLevel = tag.getInt("weaknessLevel");
+            state.miningFatigueLevel = tag.getInt("miningFatigueLevel");
+            state.hungerLevel = tag.getInt("hungerLevel");
+            state.poisonLevel = tag.getInt("poisonLevel");
+            state.isRebelling = tag.getBoolean("isRebelling");
+            state.vassalTaxRate = tag.contains("vassalTaxRate") ? tag.getDouble("vassalTaxRate") : 0.25;
+            state.debuffRangeUpgrade = tag.getInt("debuffRangeUpgrade");
+            state.hasAlertUpgrade = tag.getBoolean("hasAlertUpgrade");
+            state.doubleTradeLicense = tag.getBoolean("doubleTradeLicense");
+
+            // passiveIncomeSubCores Deserialization
+            if (tag.contains("passiveIncomeSubCores", Tag.TAG_LIST)) {
+                ListTag subCoresList = tag.getList("passiveIncomeSubCores", Tag.TAG_COMPOUND);
+                state.passiveIncomeSubCores = new ArrayList<>();
+                for (int i = 0; i < subCoresList.size(); i++) {
+                    CompoundTag posTag = subCoresList.getCompound(i);
+                    state.passiveIncomeSubCores.add(new BlockPos(
+                            posTag.getInt("x"),
+                            posTag.getInt("y"),
+                            posTag.getInt("z")
+                    ));
+                }
             }
             
             // Deserialize SubCores List

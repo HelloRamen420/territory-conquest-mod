@@ -94,16 +94,7 @@ public class PacketRequestDepositGold {
             // Sync the updated state back to client to refresh screen in real-time
             BlockState blockState = player.level.getBlockState(corePos);
             if (blockState.is(ModBlocks.CORE_BLOCK.get())) {
-                ModMessages.sendToPlayer(new PacketSyncCoreInfo(
-                        corePos,
-                        state.username,
-                        state.teamColor,
-                        state.debuffLevel,
-                        state.treasury,
-                        state.totalIronSold,
-                        state.totalGoldSold,
-                        state.totalEmeraldSold
-                ), player);
+                ModMessages.sendToPlayer(new PacketSyncCoreInfo(corePos, state), player);
             } else {
                 ModMessages.sendToPlayer(new PacketSyncSubCoreInfo(
                         corePos,

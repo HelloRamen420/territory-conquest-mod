@@ -54,16 +54,7 @@ public class CoreBlock extends Block {
 
         // Open Core Block GUI Screen
         if (player instanceof ServerPlayer serverPlayer) {
-            ModMessages.sendToPlayer(new PacketSyncCoreInfo(
-                    pos,
-                    ownerState.username,
-                    ownerState.teamColor,
-                    ownerState.debuffLevel,
-                    ownerState.treasury,
-                    ownerState.totalIronSold,
-                    ownerState.totalGoldSold,
-                    ownerState.totalEmeraldSold
-            ), serverPlayer);
+            ModMessages.sendToPlayer(new PacketSyncCoreInfo(pos, ownerState), serverPlayer);
         }
 
         return InteractionResult.CONSUME;
