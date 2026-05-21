@@ -118,6 +118,9 @@ public class TerritoryChunkEventHandler {
                     message += " §7(属国)";
                 }
 
+                // Add 2nd line with chunk coordinates
+                message += "\n" + colorCode + "チャンク座標: [" + currentChunk.x + ", " + currentChunk.z + "]";
+
                 player.connection.send(new ClientboundSetActionBarTextPacket(
                     new TextComponent(message)
                 ));

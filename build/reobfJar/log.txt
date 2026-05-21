@@ -108,8 +108,8 @@ Processing entries
 Conflicting propagated mapping for com/example/territory/TerritorySavedData/save(Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/nbt/CompoundTag; from net/minecraft/world/level/saveddata/SavedData/save(Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/nbt/CompoundTag;: save -> m_7176_
 Conflicting propagated mapping for com/example/territory/client/gui/TerritoryStatusScreen/isPauseScreen()Z from net/minecraft/client/gui/screens/Screen/isPauseScreen()Z: isPauseScreen -> m_7043_
 Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScreen/isPauseScreen()Z from net/minecraft/client/gui/screens/Screen/isPauseScreen()Z: isPauseScreen -> m_7043_
-Conflicting propagated mapping for com/example/territory/client/gui/TerritoryStatusScreen/init()V from net/minecraft/client/gui/screens/Screen/init()V: init -> m_7856_
 Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScreen/init()V from net/minecraft/client/gui/screens/Screen/init()V: init -> m_7856_
+Conflicting propagated mapping for com/example/territory/client/gui/TerritoryStatusScreen/init()V from net/minecraft/client/gui/screens/Screen/init()V: init -> m_7856_
 Conflicting propagated mapping for com/example/territory/client/gui/TerritoryStatusScreen/render(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V from net/minecraft/client/gui/screens/Screen/render(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V: render -> m_6305_
 Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScreen/mouseDragged(DDIDD)Z from net/minecraft/client/gui/components/events/ContainerEventHandler/mouseDragged(DDIDD)Z: mouseDragged -> m_7979_
 Conflicting propagated mapping for com/example/territory/client/gui/ExchangeScreen/render(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V from net/minecraft/client/gui/screens/Screen/render(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V: render -> m_6305_
