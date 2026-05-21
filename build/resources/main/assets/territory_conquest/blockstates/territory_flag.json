@@ -1,7 +1,22 @@
 {
   "variants": {
-    "": {
-      "model": "territory_conquest:block/territory_flag"
+    "color=0": {
+      "model": "territory_conquest:block/territory_flag_red"
+    },
+    "color=1": {
+      "model": "territory_conquest:block/territory_flag_blue"
+    },
+    "color=2": {
+      "model": "territory_conquest:block/territory_flag_green"
+    },
+    "color=3": {
+      "model": "territory_conquest:block/territory_flag_yellow"
+    },
+    "color=4": {
+      "model": "territory_conquest:block/territory_flag_purple"
+    },
+    "color=5": {
+      "model": "territory_conquest:block/territory_flag_orange"
     }
   }
 }

@@ -3,6 +3,7 @@ package com.example.territory.event;
 import com.example.territory.TerritoryConquest;
 import com.example.territory.TerritorySavedData;
 import com.example.territory.block.ModBlocks;
+import com.example.territory.block.TerritoryFlagBlock;
 import com.example.territory.util.MonsterSpawnerUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
@@ -89,6 +90,23 @@ public class TerritoryPlacementEventHandler {
                 return;
             }
 
+            // F. Cannot place SubCore in the same chunk as the Main Core (Sanctuary Chunk)
+            ChunkPos sanctuaryChunk = new ChunkPos(playerState.spawnX >> 4, playerState.spawnZ >> 4);
+            if (sanctuaryChunk.equals(chunkPos)) {
+                event.setCanceled(true);
+                player.sendMessage(new TextComponent("§cサブコアをメインコアと同じチャンク（聖域）に設置することはできません！"), playerUuid);
+                return;
+            }
+
+            // G. Cannot place multiple SubCores in the same chunk
+            for (BlockPos existingSubCore : playerState.subCores) {
+                if (new ChunkPos(existingSubCore).equals(chunkPos)) {
+                    event.setCanceled(true);
+                    player.sendMessage(new TextComponent("§cこのチャンクにはすでにサブコアが設置されています！"), playerUuid);
+                    return;
+                }
+            }
+
             // All checks passed! Register the subcore
             playerState.subCores.add(pos);
             data.setDirty();
@@ -99,6 +117,13 @@ public class TerritoryPlacementEventHandler {
 
         // 2. HANDLE TERRITORY_FLAG PLACEMENT
         else if (placedState.is(ModBlocks.TERRITORY_FLAG.get())) {
+            // Dimension Restriction (Can only claim in Overworld)
+            if (level.dimension() != Level.OVERWORLD) {
+                event.setCanceled(true);
+                player.sendMessage(new TextComponent("§c開拓の旗は地上世界（オーバーワールド）にしか設置できません！"), playerUuid);
+                return;
+            }
+
             ChunkPos chunkPos = new ChunkPos(pos);
             long chunkLong = chunkPos.toLong();
 
@@ -132,6 +157,11 @@ public class TerritoryPlacementEventHandler {
             // Track flag position for upkeep system
             playerState.flags.add(pos);
             data.setDirty();
+
+            // Set the block state color to match the player's team color
+            int colorId = teamColorToInt(playerState.teamColor);
+            BlockState coloredState = placedState.setValue(TerritoryFlagBlock.COLOR, colorId);
+            level.setBlock(pos, coloredState, 3);
 
             level.playSound(null, pos, SoundEvents.BOOK_PUT, SoundSource.BLOCKS, 1.0f, 1.2f);
             player.sendMessage(new TextComponent("§a✔ 新たなチャンク [" + chunkPos.x + ", " + chunkPos.z + "] を領有しました！"), playerUuid);
@@ -230,5 +260,17 @@ public class TerritoryPlacementEventHandler {
         int dz = Math.abs(c1.z - c2.z);
         // 4-way adjacent
         return (dx == 1 && dz == 0) || (dx == 0 && dz == 1);
+    }
+
+    private static int teamColorToInt(String color) {
+        return switch (color) {
+            case "RED" -> 0;
+            case "BLUE" -> 1;
+            case "GREEN" -> 2;
+            case "YELLOW" -> 3;
+            case "PURPLE" -> 4;
+            case "ORANGE" -> 5;
+            default -> 0;
+        };
     }
 }

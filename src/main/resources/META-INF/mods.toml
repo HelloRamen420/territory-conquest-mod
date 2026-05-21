@@ -4,7 +4,7 @@ license="MIT"
 
 [[mods]]
 modId="territory_conquest"
-version="1.0.0"
+version="1.0.2"
 displayName="Territory Conquest Mod"
 description='''
 A chunk-based PvP territory conquest mod.

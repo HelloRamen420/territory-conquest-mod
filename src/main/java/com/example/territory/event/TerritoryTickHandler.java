@@ -58,11 +58,8 @@ public class TerritoryTickHandler {
             UUID playerUuid = entry.getKey();
             TerritorySavedData.PlayerState state = entry.getValue();
 
-            // Count this player's claimed chunks
-            int ownedChunks = 0;
-            for (UUID chunkOwner : data.getClaimedChunks().values()) {
-                if (chunkOwner.equals(playerUuid)) ownedChunks++;
-            }
+            // 聖域チャンクを除いた、追加で開拓したチャンク（旗の数）を維持費の計算対象とする
+            int ownedChunks = state.flags.size();
 
             if (ownedChunks == 0) continue;
 
