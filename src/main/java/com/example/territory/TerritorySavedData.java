@@ -133,8 +133,19 @@ public class TerritorySavedData extends SavedData {
     private final Map<Long, UUID> corePositions = new HashMap<>();
     // 維持費を最後に処理したマインクラフトの日数（サーバー再起動をまたいで永続化）
     private long lastProcessedDay = -1L;
+    // ゲームが開始されているかどうか（サーバー再起動をまたいで永続化）
+    private boolean gameStarted = false;
 
     public TerritorySavedData() {}
+
+    public boolean isGameStarted() {
+        return gameStarted;
+    }
+
+    public void setGameStarted(boolean started) {
+        this.gameStarted = started;
+        setDirty();
+    }
 
     public Map<UUID, PlayerState> getPlayers() {
         return players;
@@ -189,6 +200,7 @@ public class TerritorySavedData extends SavedData {
     public static TerritorySavedData load(CompoundTag tag) {
         TerritorySavedData data = new TerritorySavedData();
         data.lastProcessedDay = tag.contains("lastProcessedDay") ? tag.getLong("lastProcessedDay") : -1L;
+        data.gameStarted = tag.contains("gameStarted") && tag.getBoolean("gameStarted");
         
         // Load players
         if (tag.contains("players", Tag.TAG_LIST)) {
@@ -249,6 +261,9 @@ public class TerritorySavedData extends SavedData {
 
         // Save lastProcessedDay
         tag.putLong("lastProcessedDay", lastProcessedDay);
+
+        // Save gameStarted
+        tag.putBoolean("gameStarted", gameStarted);
 
         // Save core positions
         CompoundTag coresTag = new CompoundTag();

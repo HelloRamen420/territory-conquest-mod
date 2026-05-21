@@ -179,7 +179,6 @@ Writing Output: /Users/kirinokazuya/Documents/￣ﾂﾽ￣ﾃﾼ￣ﾂﾹ￣ﾂ�
   com/example/territory/command/
   com/example/territory/command/TerritoryCommand.class
   com/example/territory/event/
-  com/example/territory/event/CoreBlockEventHandler.class
   com/example/territory/event/CoreDestructionEventHandler.class
   com/example/territory/event/CoreHpManager.class
   com/example/territory/event/PlayerJoinEventHandler.class
@@ -211,6 +210,12 @@ Writing Output: /Users/kirinokazuya/Documents/￣ﾂﾽ￣ﾃﾼ￣ﾂﾹ￣ﾂ�
   com/example/territory/util/TradeManager$TradeRate.class
   com/example/territory/util/TradeManager.class
   data/
+  data/minecraft/
+  data/minecraft/tags/
+  data/minecraft/tags/blocks/
+  data/minecraft/tags/blocks/mineable/
+  data/minecraft/tags/blocks/mineable/pickaxe.json
+  data/minecraft/tags/blocks/needs_diamond_tool.json
   data/territory_conquest/
   data/territory_conquest/recipes/
   data/territory_conquest/recipes/sub_core_block.json

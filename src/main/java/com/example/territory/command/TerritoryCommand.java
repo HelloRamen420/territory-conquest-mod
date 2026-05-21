@@ -8,6 +8,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -38,6 +39,9 @@ public class TerritoryCommand {
                     .executes(TerritoryCommand::executeMe))
                 .then(Commands.literal("chunk")
                     .executes(TerritoryCommand::executeChunk))
+                .then(Commands.literal("start")
+                    .requires(src -> src.hasPermission(2))
+                    .executes(TerritoryCommand::executeStart))
         );
     }
 
@@ -134,6 +138,55 @@ public class TerritoryCommand {
             src.sendFailure(new TextComponent("§cプレイヤーとして実行してください。"));
             return 0;
         }
+        return 1;
+    }
+
+    /** /territory start - Starts the territory game for all online players */
+    private static int executeStart(CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack src = ctx.getSource();
+        ServerLevel overworld = src.getServer().getLevel(Level.OVERWORLD);
+        if (overworld == null) {
+            src.sendFailure(new TextComponent("§cオーバーワールドが見つかりません。"));
+            return 0;
+        }
+
+        TerritorySavedData data = TerritorySavedData.get(overworld);
+        if (data.isGameStarted()) {
+            src.sendFailure(new TextComponent("§c陣取りゲームはすでに開始されています。"));
+            return 0;
+        }
+
+        // Set game started to true
+        data.setGameStarted(true);
+        src.sendSuccess(new TextComponent("§6[Territory Conquest] §a陣取りゲームを開始します！"), true);
+
+        // Register and spawn all currently online players
+        java.util.List<ServerPlayer> players = src.getServer().getPlayerList().getPlayers();
+        int count = 0;
+        for (ServerPlayer player : players) {
+            if (!data.getPlayers().containsKey(player.getUUID())) {
+                boolean success = com.example.territory.event.PlayerJoinEventHandler.registerAndSpawnPlayer(player, overworld, data);
+                if (success) {
+                    count++;
+                }
+            }
+        }
+
+        // Broadcast gorgeous battle start message
+        src.getServer().getPlayerList().broadcastMessage(
+            new TextComponent("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+                              "§6§l陣取りゲームが開始されました！\n" +
+                              "§a初期化されたプレイヤー数: §f" + count + "\n" +
+                              "§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━"),
+            net.minecraft.network.chat.ChatType.SYSTEM,
+            UUID.randomUUID()
+        );
+
+        // Play start sound to all online players
+        for (ServerPlayer p : src.getServer().getPlayerList().getPlayers()) {
+            p.playNotifySound(net.minecraft.sounds.SoundEvents.END_PORTAL_SPAWN, net.minecraft.sounds.SoundSource.NEUTRAL, 1.0f, 1.0f);
+        }
+
         return 1;
     }
 

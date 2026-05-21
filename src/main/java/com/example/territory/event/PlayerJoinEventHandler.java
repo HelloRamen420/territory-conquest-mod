@@ -40,12 +40,33 @@ public class PlayerJoinEventHandler {
 
         ServerLevel level = player.getLevel();
         TerritorySavedData data = TerritorySavedData.get(level);
+
+        // 1. If game has not started, do not register, just notify the player
+        if (!data.isGameStarted()) {
+            player.sendMessage(new TextComponent("§6[Territory Conquest] §c陣取りゲームはまだ開始されていません。"), player.getUUID());
+            player.sendMessage(new TextComponent("§c管理者がコマンド「/territory start」を実行するまでお待ちください。"), player.getUUID());
+            return;
+        }
+
+        UUID uuid = player.getUUID();
+        // 2. If the game has started, register if not already registered (late joiner case)
+        if (!data.getPlayers().containsKey(uuid)) {
+            registerAndSpawnPlayer(player, level, data);
+        }
+    }
+
+    /**
+     * Registers a player and spawns them at a plains biome.
+     * Places the main core Y+2 blocks above their spawn position.
+     * Returns true if successfully registered and spawned.
+     */
+    public static boolean registerAndSpawnPlayer(ServerPlayer player, ServerLevel level, TerritorySavedData data) {
         UUID uuid = player.getUUID();
 
         // 1. Check if the player is already registered
         if (data.getPlayers().containsKey(uuid)) {
             // Already registered, do nothing
-            return;
+            return false;
         }
 
         // 2. Limit to max 6 players
@@ -53,7 +74,7 @@ public class PlayerJoinEventHandler {
         if (playerCount >= 6) {
             player.sendMessage(new TextComponent("§cこのサーバーの陣取りゲームは最大人数（6人）に達しています。あなたは観戦者です。"), player.getUUID());
             player.setGameMode(net.minecraft.world.level.GameType.SPECTATOR);
-            return;
+            return false;
         }
 
         // 3. Register the new player
@@ -64,7 +85,13 @@ public class PlayerJoinEventHandler {
         BlockPos spawnPos = findPlainsSpawnLocation(level, baseCoords[0], baseCoords[1]);
         if (spawnPos == null) {
             // Fallback if no plains found (should be extremely rare with our spiral search, but safety first)
-            spawnPos = new BlockPos(baseCoords[0], level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, baseCoords[0], baseCoords[1]), baseCoords[1]);
+            // Ensure chunk is loaded/generated!
+            level.getChunkSource().getChunk(baseCoords[0] >> 4, baseCoords[1] >> 4, net.minecraft.world.level.chunk.ChunkStatus.FULL, true);
+            int fallbackY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, baseCoords[0], baseCoords[1]);
+            if (fallbackY <= level.getMinBuildHeight() || fallbackY <= 0) {
+                fallbackY = 64; // Safe default surface height
+            }
+            spawnPos = new BlockPos(baseCoords[0], fallbackY, baseCoords[1]);
             TerritoryConquest.LOGGER.warn("Could not find a plains biome near base coordinate for player {}, using fallback.", player.getName().getString());
         }
 
@@ -107,6 +134,8 @@ public class PlayerJoinEventHandler {
             net.minecraft.network.chat.ChatType.SYSTEM,
             UUID.randomUUID()
         );
+
+        return true;
     }
 
     /**
@@ -126,12 +155,18 @@ public class PlayerJoinEventHandler {
             if ((-maxRadius / 2 < x && x <= maxRadius / 2) && (-maxRadius / 2 < z && z <= maxRadius / 2)) {
                 int checkX = baseX + x;
                 int checkZ = baseZ + z;
+
+                // Force load/generate the chunk synchronously to FULL status so biome and height check are accurate!
+                level.getChunkSource().getChunk(checkX >> 4, checkZ >> 4, net.minecraft.world.level.chunk.ChunkStatus.FULL, true);
+
                 BlockPos checkPos = new BlockPos(checkX, 64, checkZ);
 
                 // Check if plains biome
                 if (level.getBiome(checkPos).is(Biomes.PLAINS)) {
                     int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, checkX, checkZ);
-                    return new BlockPos(checkX, surfaceY, checkZ);
+                    if (surfaceY > level.getMinBuildHeight() && surfaceY > 0) {
+                        return new BlockPos(checkX, surfaceY, checkZ);
+                    }
                 }
             }
 

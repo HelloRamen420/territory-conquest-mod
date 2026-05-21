@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "territory_conquest:core_block",
+    "territory_conquest:sub_core_block"
+  ]
+}
