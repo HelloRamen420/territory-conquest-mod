@@ -117,7 +117,7 @@ public class PacketRequestCoreUpgrade {
                     }
                     break;
                 case RANGE:
-                    cost = 2000;
+                    cost = (state.debuffRangeUpgrade + 1) * 2000;
                     break;
                 case ALERT:
                     if (state.hasAlertUpgrade) {

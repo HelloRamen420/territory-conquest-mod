@@ -189,11 +189,12 @@ public class CoreBlockScreen extends Screen {
         } else if (activeTab == 2) {
             // Nation Upgrades Tab (Items shifted down by 12px)
             // 1. Debuff Range Button
+            int rangeCost = (data.debuffRangeUpgrade + 1) * 2000;
             Button rangeBtn = new Button(this.left + 15, this.top + 92, 145, 20,
-                    new TextComponent("範囲拡張 (+1c: 2000G)"),
+                    new TextComponent("範囲拡張 (+1c: " + rangeCost + "G)"),
                     btn -> upgrade(PacketRequestCoreUpgrade.UpgradeType.RANGE)
             );
-            rangeBtn.active = isOwner && data.treasury >= 2000;
+            rangeBtn.active = isOwner && data.treasury >= rangeCost;
             this.addRenderableWidget(rangeBtn);
 
             // 2. Alert Button
