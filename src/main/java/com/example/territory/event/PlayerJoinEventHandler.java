@@ -22,14 +22,14 @@ public class PlayerJoinEventHandler {
     // 6 colors for up to 6 players
     private static final String[] TEAM_COLORS = {"RED", "BLUE", "GREEN", "YELLOW", "PURPLE", "ORANGE"};
 
-    // Preset base coordinates to space out players by at least 1500 blocks
+    // Preset base coordinates to space out players by at least 1500 blocks, avoiding the initial world spawn (0,0)
     private static final int[][] BASE_COORDINATES = {
-        {0, 0},
-        {1500, 0},
-        {-1500, 0},
-        {0, 1500},
-        {0, -1500},
-        {1500, 1500}
+        {3000, 3000},
+        {-3000, 3000},
+        {3000, -3000},
+        {-3000, -3000},
+        {4500, 0},
+        {-4500, 0}
     };
 
     @SubscribeEvent
@@ -81,18 +81,19 @@ public class PlayerJoinEventHandler {
         String teamColor = TEAM_COLORS[playerCount];
         int[] baseCoords = BASE_COORDINATES[playerCount];
 
-        // 4. Find plains spawn location
-        BlockPos spawnPos = findPlainsSpawnLocation(level, baseCoords[0], baseCoords[1]);
+        // 4. Find plains spawn location progressively to ensure absolute plains biome spawn
+        // while staying as close as possible to the base coordinate.
+        BlockPos spawnPos = findPlainsSpawnLocationProgressively(level, baseCoords[0], baseCoords[1]);
+
         if (spawnPos == null) {
-            // Fallback if no plains found (should be extremely rare with our spiral search, but safety first)
-            // Ensure chunk is loaded/generated!
+            // Absolute fallback only if progressive search failed (extremely rare, e.g. custom single-biome ocean world)
             level.getChunkSource().getChunk(baseCoords[0] >> 4, baseCoords[1] >> 4, net.minecraft.world.level.chunk.ChunkStatus.FULL, true);
             int fallbackY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, baseCoords[0], baseCoords[1]);
             if (fallbackY <= level.getMinBuildHeight() || fallbackY <= 0) {
                 fallbackY = 64; // Safe default surface height
             }
             spawnPos = new BlockPos(baseCoords[0], fallbackY, baseCoords[1]);
-            TerritoryConquest.LOGGER.warn("Could not find a plains biome near base coordinate for player {}, using fallback.", player.getName().getString());
+            TerritoryConquest.LOGGER.warn("Could not find a plains biome even after progressive search up to 100,000 blocks. Using fallback at base coordinates.");
         }
 
         // Save player state
@@ -139,29 +140,56 @@ public class PlayerJoinEventHandler {
     }
 
     /**
-     * Searches in a spiral pattern near the base coordinate to find a plains biome.
+     * Searches progressively in expanding ring zones to find the nearest plains biome,
+     * ensuring players stay as close as possible to their assigned base coordinates.
      */
-    private static BlockPos findPlainsSpawnLocation(ServerLevel level, int baseX, int baseZ) {
-        // Spiral search parameters
-        int stepSize = 128; // Check every 8 chunks
-        int maxRadius = 4000; // Search up to 4000 blocks out
+    public static BlockPos findPlainsSpawnLocationProgressively(ServerLevel level, int baseX, int baseZ) {
+        // Stage 1: Radius 0 to 4,000, step size 128 (Detailed search)
+        BlockPos pos = findPlainsSpawnLocationInRing(level, baseX, baseZ, 0, 4000, 128);
+        if (pos != null) return pos;
 
-        int x = 0;
-        int z = 0;
+        // Stage 2: Radius 4,000 to 13,000, step size 256 (Balanced search)
+        pos = findPlainsSpawnLocationInRing(level, baseX, baseZ, 4000, 13000, 256);
+        if (pos != null) return pos;
+
+        // Stage 3: Radius 13,000 to 30,000, step size 512 (Expanded search)
+        pos = findPlainsSpawnLocationInRing(level, baseX, baseZ, 13000, 30000, 512);
+        if (pos != null) return pos;
+
+        // Stage 4: Radius 30,000 to 100,000, step size 1024 (Global safety search)
+        pos = findPlainsSpawnLocationInRing(level, baseX, baseZ, 30000, 100000, 1024);
+        return pos;
+    }
+
+    /**
+     * Performs a spiral search within the specified ring [minRadius, maxRadius] centered on baseX/baseZ.
+     * Uses stepSize to optimize performance and prevent server freezing.
+     */
+    private static BlockPos findPlainsSpawnLocationInRing(ServerLevel level, int baseX, int baseZ, int minRadius, int maxRadius, int stepSize) {
+        int gridX = 0;
+        int gridZ = 0;
         int dx = 0;
         int dz = -1;
 
-        int limit = (maxRadius / stepSize) * (maxRadius / stepSize);
-        for (int i = 0; i < limit; i++) {
-            if ((-maxRadius / 2 < x && x <= maxRadius / 2) && (-maxRadius / 2 < z && z <= maxRadius / 2)) {
-                int checkX = baseX + x;
-                int checkZ = baseZ + z;
+        int maxGridRadius = maxRadius / stepSize;
+        int side = maxGridRadius * 2 + 1;
+        long limit = (long) side * side;
 
+        for (long i = 0; i < limit; i++) {
+            int checkX = baseX + gridX * stepSize;
+            int checkZ = baseZ + gridZ * stepSize;
+
+            int distanceX = Math.abs(checkX - baseX);
+            int distanceZ = Math.abs(checkZ - baseZ);
+            int maxDistance = Math.max(distanceX, distanceZ);
+
+            if (maxDistance >= minRadius && maxDistance <= maxRadius) {
                 BlockPos checkPos = new BlockPos(checkX, 64, checkZ);
 
-                // Check if biome is plains-like (checking biome is faster than generating FULL chunk)
-                if (level.getBiome(checkPos).is(Biomes.PLAINS) || level.getBiome(checkPos).is(Biomes.SUNFLOWER_PLAINS) || level.getBiome(checkPos).is(Biomes.MEADOW)) {
-                    // Found a candidate! Now generate the chunk to FULL to accurately get the surface height
+                if (level.getBiome(checkPos).is(Biomes.PLAINS) || 
+                    level.getBiome(checkPos).is(Biomes.SUNFLOWER_PLAINS) || 
+                    level.getBiome(checkPos).is(Biomes.MEADOW)) {
+                    
                     level.getChunkSource().getChunk(checkX >> 4, checkZ >> 4, net.minecraft.world.level.chunk.ChunkStatus.FULL, true);
                     int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, checkX, checkZ);
                     if (surfaceY > level.getMinBuildHeight() && surfaceY > 0) {
@@ -170,13 +198,13 @@ public class PlayerJoinEventHandler {
                 }
             }
 
-            if (x == z || (x < 0 && x == -z) || (x > 0 && x == 1 - z)) {
+            if (gridX == gridZ || (gridX < 0 && gridX == -gridZ) || (gridX > 0 && gridX == 1 - gridZ)) {
                 int temp = dx;
                 dx = -dz;
                 dz = temp;
             }
-            x += dx * stepSize;
-            z += dz * stepSize;
+            gridX += dx;
+            gridZ += dz;
         }
 
         return null;
