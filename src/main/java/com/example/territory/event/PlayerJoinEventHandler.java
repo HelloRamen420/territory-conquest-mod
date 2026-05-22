@@ -188,7 +188,11 @@ public class PlayerJoinEventHandler {
 
                 if (level.getBiome(checkPos).is(Biomes.PLAINS) || 
                     level.getBiome(checkPos).is(Biomes.SUNFLOWER_PLAINS) || 
-                    level.getBiome(checkPos).is(Biomes.MEADOW)) {
+                    level.getBiome(checkPos).is(Biomes.MEADOW) ||
+                    level.getBiome(checkPos).is(Biomes.FOREST) ||
+                    level.getBiome(checkPos).is(Biomes.FLOWER_FOREST) ||
+                    level.getBiome(checkPos).is(Biomes.BIRCH_FOREST) ||
+                    level.getBiome(checkPos).is(Biomes.SAVANNA)) {
                     
                     level.getChunkSource().getChunk(checkX >> 4, checkZ >> 4, net.minecraft.world.level.chunk.ChunkStatus.FULL, true);
                     int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, checkX, checkZ);
