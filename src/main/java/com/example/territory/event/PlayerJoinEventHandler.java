@@ -143,26 +143,26 @@ public class PlayerJoinEventHandler {
      */
     private static BlockPos findPlainsSpawnLocation(ServerLevel level, int baseX, int baseZ) {
         // Spiral search parameters
-        int stepSize = 32;
-        int maxRadius = 512; // Search up to 512 blocks out
+        int stepSize = 128; // Check every 8 chunks
+        int maxRadius = 4000; // Search up to 4000 blocks out
 
         int x = 0;
         int z = 0;
         int dx = 0;
         int dz = -1;
 
-        for (int i = 0; i < (maxRadius / stepSize) * (maxRadius / stepSize); i++) {
+        int limit = (maxRadius / stepSize) * (maxRadius / stepSize);
+        for (int i = 0; i < limit; i++) {
             if ((-maxRadius / 2 < x && x <= maxRadius / 2) && (-maxRadius / 2 < z && z <= maxRadius / 2)) {
                 int checkX = baseX + x;
                 int checkZ = baseZ + z;
 
-                // Force load/generate the chunk synchronously to FULL status so biome and height check are accurate!
-                level.getChunkSource().getChunk(checkX >> 4, checkZ >> 4, net.minecraft.world.level.chunk.ChunkStatus.FULL, true);
-
                 BlockPos checkPos = new BlockPos(checkX, 64, checkZ);
 
-                // Check if plains biome
-                if (level.getBiome(checkPos).is(Biomes.PLAINS)) {
+                // Check if biome is plains-like (checking biome is faster than generating FULL chunk)
+                if (level.getBiome(checkPos).is(Biomes.PLAINS) || level.getBiome(checkPos).is(Biomes.SUNFLOWER_PLAINS) || level.getBiome(checkPos).is(Biomes.MEADOW)) {
+                    // Found a candidate! Now generate the chunk to FULL to accurately get the surface height
+                    level.getChunkSource().getChunk(checkX >> 4, checkZ >> 4, net.minecraft.world.level.chunk.ChunkStatus.FULL, true);
                     int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, checkX, checkZ);
                     if (surfaceY > level.getMinBuildHeight() && surfaceY > 0) {
                         return new BlockPos(checkX, surfaceY, checkZ);

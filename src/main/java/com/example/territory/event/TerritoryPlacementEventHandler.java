@@ -109,6 +109,7 @@ public class TerritoryPlacementEventHandler {
 
             // All checks passed! Register the subcore
             playerState.subCores.add(pos);
+            data.addCore(pos, playerUuid);
             data.setDirty();
 
             level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0f, 1.0f);
@@ -198,6 +199,7 @@ public class TerritoryPlacementEventHandler {
                 TerritorySavedData.PlayerState ownerState = data.getPlayers().get(ownerUuid);
                 if (ownerState != null) {
                     ownerState.subCores.remove(pos);
+                    data.removeCore(pos);
                     data.setDirty();
 
                     // Notify owner if broken by someone else

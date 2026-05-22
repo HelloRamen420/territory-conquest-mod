@@ -203,6 +203,7 @@ public class CoreHpManager {
                     victimState.subCores.remove(pos);
                     victimState.passiveIncomeSubCores.remove(pos);
                 }
+                data.removeCore(pos);
                 
                 level.getServer().getPlayerList().broadcastMessage(
                         new TextComponent("§c§l[破壊] §e" + (victimState != null ? victimState.username : "不明") + " のサブコアが " + player.getScoreboardName() + " によって破壊されました！"),

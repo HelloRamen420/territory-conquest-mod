@@ -400,7 +400,7 @@ public class CoreBlockScreen extends Screen {
         } else if (activeTab == 3) {
             // Foreign Trade (Auction Tab text)
             drawCenteredString(poseStack, this.font, "§d§l【外交オークション交易ボード】", this.left + this.widthSize / 2, currentY, 0xFFFFFF);
-            drawCenteredString(poseStack, this.font, "§7全プレイヤーとアイテム売買が可能です。 (残高: §6" + data.treasury + "G§7)", this.left + this.widthSize / 2, this.top + 68, 0xCCCCCC);
+            drawCenteredString(poseStack, this.font, "§7全プレイヤーとアイテム売買が可能です。 (残高: §6" + data.treasury + "G§7)", this.left + this.widthSize / 2, this.top + 52, 0xCCCCCC);
 
             // Quick listing area details
             ItemStack handStack = Minecraft.getInstance().player.getMainHandItem();
@@ -444,8 +444,8 @@ public class CoreBlockScreen extends Screen {
                 int count = entry.itemStack != null ? entry.itemStack.getCount() : 0;
 
                 String sellerName = entry.sellerUsername;
-                if (sellerName.length() > 6) {
-                    sellerName = sellerName.substring(0, 5) + "..";
+                if (sellerName.length() > 12) {
+                    sellerName = sellerName.substring(0, 11) + "..";
                 }
 
                 // Render text columns
