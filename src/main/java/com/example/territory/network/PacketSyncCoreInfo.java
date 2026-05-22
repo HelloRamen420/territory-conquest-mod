@@ -162,6 +162,11 @@ public class PacketSyncCoreInfo {
             net.minecraft.client.gui.screens.Screen currentScreen = Minecraft.getInstance().screen;
             if (currentScreen instanceof com.example.territory.client.gui.ExchangeScreen currentExchange) {
                 currentExchange.updateData(packet.treasury, packet.totalIronSold, packet.totalGoldSold, packet.totalEmeraldSold, packet.doubleTradeLicense);
+            } else if (currentScreen instanceof CoreBlockScreen prevScreen) {
+                int prevTab = prevScreen.getActiveTab();
+                CoreBlockScreen newScreen = new CoreBlockScreen(packet);
+                newScreen.setActiveTab(prevTab);
+                Minecraft.getInstance().setScreen(newScreen);
             } else {
                 Minecraft.getInstance().setScreen(new CoreBlockScreen(packet));
             }

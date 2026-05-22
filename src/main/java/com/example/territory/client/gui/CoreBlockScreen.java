@@ -517,4 +517,12 @@ public class CoreBlockScreen extends Screen {
             default -> "§f";
         };
     }
+
+    public int getActiveTab() {
+        return this.activeTab;
+    }
+
+    public void setActiveTab(int activeTab) {
+        this.activeTab = activeTab;
+    }
 }
