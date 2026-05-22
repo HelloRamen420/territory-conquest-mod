@@ -92,21 +92,8 @@ public class PacketRequestDepositGold {
             player.level.playSound(null, corePos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 1.0f, 1.2f);
 
             // Sync the updated state back to client to refresh screen in real-time
-            BlockState blockState = player.level.getBlockState(corePos);
-            if (blockState.is(ModBlocks.CORE_BLOCK.get())) {
-                ModMessages.sendToPlayer(new PacketSyncCoreInfo(corePos, state), player);
-            } else {
-                ModMessages.sendToPlayer(new PacketSyncSubCoreInfo(
-                        corePos,
-                        state.username,
-                        state.teamColor,
-                        state.treasury,
-                        state.totalIronSold,
-                        state.totalGoldSold,
-                        state.totalEmeraldSold,
-                        state.doubleTradeLicense
-                ), player);
-            }
+            boolean isMainCore = !state.subCores.contains(corePos);
+            ModMessages.sendToPlayer(new PacketSyncCoreInfo(corePos, state, isMainCore), player);
         });
         return true;
     }

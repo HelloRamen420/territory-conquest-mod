@@ -237,28 +237,8 @@ public class PacketRequestCoreUpgrade {
             player.level.playSound(null, corePos, SoundEvents.BEACON_POWER_SELECT, SoundSource.BLOCKS, 1.0f, 1.2f);
 
             // Sync updated state back
-            ModMessages.sendToPlayer(new PacketSyncCoreInfo(
-                    corePos,
-                    state.username,
-                    state.teamColor,
-                    state.debuffLevel,
-                    state.treasury,
-                    state.totalIronSold,
-                    state.totalGoldSold,
-                    state.totalEmeraldSold,
-                    state.slownessLevel,
-                    state.weaknessLevel,
-                    state.miningFatigueLevel,
-                    state.hungerLevel,
-                    state.poisonLevel,
-                    state.isVassal,
-                    state.isRebelling,
-                    state.vassalTaxRate,
-                    state.debuffRangeUpgrade,
-                    state.hasAlertUpgrade,
-                    state.doubleTradeLicense,
-                    state.passiveIncomeSubCores.size()
-            ), player);
+            boolean isMainCore = !state.subCores.contains(corePos);
+            ModMessages.sendToPlayer(new PacketSyncCoreInfo(corePos, state, isMainCore), player);
         });
         return true;
     }

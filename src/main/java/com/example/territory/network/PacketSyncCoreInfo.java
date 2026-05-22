@@ -36,8 +36,10 @@ public class PacketSyncCoreInfo {
     public final boolean hasAlertUpgrade;
     public final boolean doubleTradeLicense;
     public final int passiveIncomeCount;
+    public final boolean isMainCore;
+    public final boolean isPassiveIncome;
 
-    public PacketSyncCoreInfo(BlockPos corePos, TerritorySavedData.PlayerState state) {
+    public PacketSyncCoreInfo(BlockPos corePos, TerritorySavedData.PlayerState state, boolean isMainCore) {
         this(
             corePos,
             state.username,
@@ -58,7 +60,9 @@ public class PacketSyncCoreInfo {
             state.debuffRangeUpgrade,
             state.hasAlertUpgrade,
             state.doubleTradeLicense,
-            state.passiveIncomeSubCores.size()
+            state.passiveIncomeSubCores.size(),
+            isMainCore,
+            state.passiveIncomeSubCores.contains(corePos)
         );
     }
 
@@ -66,7 +70,8 @@ public class PacketSyncCoreInfo {
                               int ironSold, int goldSold, int emeraldSold,
                               int slownessLevel, int weaknessLevel, int miningFatigueLevel, int hungerLevel, int poisonLevel,
                               boolean isVassal, boolean isRebelling, double vassalTaxRate,
-                              int debuffRangeUpgrade, boolean hasAlertUpgrade, boolean doubleTradeLicense, int passiveIncomeCount) {
+                              int debuffRangeUpgrade, boolean hasAlertUpgrade, boolean doubleTradeLicense, int passiveIncomeCount,
+                              boolean isMainCore, boolean isPassiveIncome) {
         this.corePos = corePos;
         this.ownerName = ownerName;
         this.teamColor = teamColor;
@@ -88,6 +93,8 @@ public class PacketSyncCoreInfo {
         this.hasAlertUpgrade = hasAlertUpgrade;
         this.doubleTradeLicense = doubleTradeLicense;
         this.passiveIncomeCount = passiveIncomeCount;
+        this.isMainCore = isMainCore;
+        this.isPassiveIncome = isPassiveIncome;
     }
 
     public PacketSyncCoreInfo(FriendlyByteBuf buf) {
@@ -112,6 +119,8 @@ public class PacketSyncCoreInfo {
         this.hasAlertUpgrade = buf.readBoolean();
         this.doubleTradeLicense = buf.readBoolean();
         this.passiveIncomeCount = buf.readInt();
+        this.isMainCore = buf.readBoolean();
+        this.isPassiveIncome = buf.readBoolean();
     }
 
     public void toBytes(FriendlyByteBuf buf) {
@@ -136,6 +145,8 @@ public class PacketSyncCoreInfo {
         buf.writeBoolean(hasAlertUpgrade);
         buf.writeBoolean(doubleTradeLicense);
         buf.writeInt(passiveIncomeCount);
+        buf.writeBoolean(isMainCore);
+        buf.writeBoolean(isPassiveIncome);
     }
 
     public boolean handle(Supplier<NetworkEvent.Context> supplier) {

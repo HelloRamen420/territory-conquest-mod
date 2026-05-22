@@ -51,11 +51,7 @@ public class ModMessages {
                 .consumer(PacketRequestCoreUpgrade::handle)
                 .add();
 
-        net.messageBuilder(PacketSyncSubCoreInfo.class, id(), NetworkDirection.PLAY_TO_CLIENT)
-                .decoder(PacketSyncSubCoreInfo::new)
-                .encoder(PacketSyncSubCoreInfo::toBytes)
-                .consumer(PacketSyncSubCoreInfo::handle)
-                .add();
+
 
         net.messageBuilder(PacketRequestDepositGold.class, id(), NetworkDirection.PLAY_TO_SERVER)
                 .decoder(PacketRequestDepositGold::new)

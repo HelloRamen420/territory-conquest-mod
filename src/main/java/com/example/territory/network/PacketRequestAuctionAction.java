@@ -228,7 +228,8 @@ public class PacketRequestAuctionAction {
             // Also sync player state
             TerritorySavedData.PlayerState spState = data.getPlayers().get(sp.getUUID());
             if (spState != null) {
-                ModMessages.sendToPlayer(new PacketSyncCoreInfo(corePos, spState), sp);
+                boolean isMainCore = !spState.subCores.contains(corePos);
+                ModMessages.sendToPlayer(new PacketSyncCoreInfo(corePos, spState, isMainCore), sp);
             }
         }
     }

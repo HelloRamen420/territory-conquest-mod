@@ -2,7 +2,8 @@ package com.example.territory.block;
 
 import com.example.territory.TerritorySavedData;
 import com.example.territory.network.ModMessages;
-import com.example.territory.network.PacketSyncSubCoreInfo;
+import com.example.territory.network.PacketSyncCoreInfo;
+import com.example.territory.network.PacketSyncAuctionList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
@@ -52,17 +53,10 @@ public class SubCoreBlock extends Block {
         }
 
         // Open SubCore GUI Screen
+        // Open Core Block GUI Screen
         if (player instanceof ServerPlayer serverPlayer) {
-            ModMessages.sendToPlayer(new PacketSyncSubCoreInfo(
-                    pos,
-                    ownerState.username,
-                    ownerState.teamColor,
-                    ownerState.treasury,
-                    ownerState.totalIronSold,
-                    ownerState.totalGoldSold,
-                    ownerState.totalEmeraldSold,
-                    ownerState.doubleTradeLicense
-            ), serverPlayer);
+            ModMessages.sendToPlayer(new PacketSyncCoreInfo(pos, ownerState, false), serverPlayer);
+            ModMessages.sendToPlayer(new PacketSyncAuctionList(data.getAuctionList()), serverPlayer);
         }
 
         return InteractionResult.CONSUME;

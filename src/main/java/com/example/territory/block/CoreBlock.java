@@ -55,7 +55,7 @@ public class CoreBlock extends Block {
 
         // Open Core Block GUI Screen
         if (player instanceof ServerPlayer serverPlayer) {
-            ModMessages.sendToPlayer(new PacketSyncCoreInfo(pos, ownerState), serverPlayer);
+            ModMessages.sendToPlayer(new PacketSyncCoreInfo(pos, ownerState, true), serverPlayer);
             ModMessages.sendToPlayer(new PacketSyncAuctionList(data.getAuctionList()), serverPlayer);
         }
 

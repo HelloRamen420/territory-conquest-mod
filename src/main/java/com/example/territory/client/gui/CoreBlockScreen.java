@@ -32,7 +32,7 @@ public class CoreBlockScreen extends Screen {
     private int currentPage = 0;
 
     public CoreBlockScreen(PacketSyncCoreInfo data) {
-        super(new TextComponent("メインコア防衛・発展設定"));
+        super(new TextComponent(data.isMainCore ? "メインコア防衛・発展設定" : "サブコア取引・領土開拓設定"));
         this.data = data;
         this.widthSize = 340;
         this.heightSize = 230;
@@ -46,32 +46,49 @@ public class CoreBlockScreen extends Screen {
         boolean isOwner = Minecraft.getInstance().player.getName().getString().equals(data.ownerName);
 
         // Tab Buttons (Evenly spaced width=76, interval=81)
-        tab0Button = new Button(this.left + 10, this.top + 30, 76, 20, new TextComponent("国家・革命"), button -> {
-            activeTab = 0;
-            rebuildWidgets();
-        });
-        tab1Button = new Button(this.left + 91, this.top + 30, 76, 20, new TextComponent("デバフ進化"), button -> {
-            activeTab = 1;
-            rebuildWidgets();
-        });
-        tab2Button = new Button(this.left + 172, this.top + 30, 76, 20, new TextComponent("国家発展"), button -> {
-            activeTab = 2;
-            rebuildWidgets();
-        });
-        tab3Button = new Button(this.left + 253, this.top + 30, 76, 20, new TextComponent("外交交易"), button -> {
-            activeTab = 3;
-            rebuildWidgets();
-        });
+        if (data.isMainCore) {
+            tab0Button = new Button(this.left + 10, this.top + 30, 76, 20, new TextComponent("国家・革命"), button -> {
+                activeTab = 0;
+                rebuildWidgets();
+            });
+            tab1Button = new Button(this.left + 91, this.top + 30, 76, 20, new TextComponent("デバフ進化"), button -> {
+                activeTab = 1;
+                rebuildWidgets();
+            });
+            tab2Button = new Button(this.left + 172, this.top + 30, 76, 20, new TextComponent("国家発展"), button -> {
+                activeTab = 2;
+                rebuildWidgets();
+            });
+            tab3Button = new Button(this.left + 253, this.top + 30, 76, 20, new TextComponent("外交交易"), button -> {
+                activeTab = 3;
+                rebuildWidgets();
+            });
 
-        tab0Button.active = activeTab != 0;
-        tab1Button.active = activeTab != 1;
-        tab2Button.active = activeTab != 2;
-        tab3Button.active = activeTab != 3;
+            tab0Button.active = activeTab != 0;
+            tab1Button.active = activeTab != 1;
+            tab2Button.active = activeTab != 2;
+            tab3Button.active = activeTab != 3;
 
-        this.addRenderableWidget(tab0Button);
-        this.addRenderableWidget(tab1Button);
-        this.addRenderableWidget(tab2Button);
-        this.addRenderableWidget(tab3Button);
+            this.addRenderableWidget(tab0Button);
+            this.addRenderableWidget(tab1Button);
+            this.addRenderableWidget(tab2Button);
+            this.addRenderableWidget(tab3Button);
+        } else {
+            tab0Button = new Button(this.left + 15, this.top + 30, 150, 20, new TextComponent("サブコア設定"), button -> {
+                activeTab = 0;
+                rebuildWidgets();
+            });
+            tab3Button = new Button(this.left + 175, this.top + 30, 150, 20, new TextComponent("外交交易"), button -> {
+                activeTab = 3;
+                rebuildWidgets();
+            });
+            
+            tab0Button.active = activeTab != 0;
+            tab3Button.active = activeTab != 3;
+            
+            this.addRenderableWidget(tab0Button);
+            this.addRenderableWidget(tab3Button);
+        }
 
         // Tab Contents widgets
         if (activeTab == 0) {
@@ -90,21 +107,38 @@ public class CoreBlockScreen extends Screen {
             exchangeBtn.active = isOwner;
             this.addRenderableWidget(exchangeBtn);
 
-            // Peace Independence Button (Vassals only)
-            if (data.isVassal) {
-                Button independenceBtn = new Button(
+            if (data.isMainCore) {
+                // Peace Independence Button (Vassals only)
+                if (data.isVassal) {
+                    Button independenceBtn = new Button(
+                            this.left + 80, this.top + 150, 180, 20,
+                            new TextComponent("平和的独立 (500,000G)"),
+                            button -> {
+                                ModMessages.sendToServer(new PacketRequestCoreUpgrade(
+                                        data.corePos,
+                                        PacketRequestCoreUpgrade.UpgradeType.INDEPENDENCE,
+                                        BlockPos.ZERO
+                                ));
+                            }
+                    );
+                    independenceBtn.active = isOwner && data.treasury >= 500000;
+                    this.addRenderableWidget(independenceBtn);
+                }
+            } else {
+                // SubCore passive income button
+                Button passiveIncomeBtn = new Button(
                         this.left + 80, this.top + 150, 180, 20,
-                        new TextComponent("平和的独立 (500,000G)"),
+                        new TextComponent(data.isPassiveIncome ? "不労所得化 済" : "不労所得化 (100,000G)"),
                         button -> {
                             ModMessages.sendToServer(new PacketRequestCoreUpgrade(
                                     data.corePos,
-                                    PacketRequestCoreUpgrade.UpgradeType.INDEPENDENCE,
-                                    BlockPos.ZERO
+                                    PacketRequestCoreUpgrade.UpgradeType.PASSIVE_INCOME,
+                                    data.corePos
                             ));
                         }
                 );
-                independenceBtn.active = isOwner && data.treasury >= 500000;
-                this.addRenderableWidget(independenceBtn);
+                passiveIncomeBtn.active = isOwner && !data.isPassiveIncome && data.treasury >= 100000;
+                this.addRenderableWidget(passiveIncomeBtn);
             }
         } else if (activeTab == 1) {
             // Debuff Upgrades Tab (Items shifted down by 12px to resolve overlapping)
@@ -179,12 +213,12 @@ public class CoreBlockScreen extends Screen {
             this.addRenderableWidget(doubleTradeBtn);
 
             // 4. Sub-Core Passive Income Button
-            Button passiveBtn = new Button(this.left + 180, this.top + 137, 145, 20,
-                    new TextComponent("サブコア不労所得 (10万G)"),
-                    btn -> upgrade(PacketRequestCoreUpgrade.UpgradeType.PASSIVE_INCOME)
+            Button incomeBtn = new Button(this.left + 180, this.top + 137, 145, 20,
+                    new TextComponent("【サブコア画面で設定可能】"),
+                    btn -> {}
             );
-            passiveBtn.active = isOwner && data.treasury >= 100000;
-            this.addRenderableWidget(passiveBtn);
+            incomeBtn.active = false;
+            this.addRenderableWidget(incomeBtn);
         } else if (activeTab == 3) {
             // Foreign Trade (Auction Tab)
             // Price Input
@@ -317,26 +351,30 @@ public class CoreBlockScreen extends Screen {
         String teamColorCode = getTeamColorCode(data.teamColor);
 
         if (activeTab == 0) {
-            // General Info & Revolution Tab
-            drawString(poseStack, this.font, "§eコア所有者: " + teamColorCode + data.ownerName, this.left + 20, currentY, 0xFFFFFF);
+            // General Info & Revolution Tab (or SubCore Info)
+            drawString(poseStack, this.font, (data.isMainCore ? "§eコア所有者: " : "§eサブコア所有者: ") + teamColorCode + data.ownerName, this.left + 20, currentY, 0xFFFFFF);
             drawString(poseStack, this.font, "§e国庫所持金: §6§l" + data.treasury + " §eG  §d⛃", this.left + 20, currentY + 16, 0xFFFFFF);
 
-            String statusStr = data.isVassal
-                    ? "§c§l属国 §7(宗主への税率: §e" + (int) (data.vassalTaxRate * 100) + "%§7)"
-                    : "§a§l独立国";
-            if (data.isVassal && data.isRebelling) {
-                statusStr = "§e§l反乱中！ §c独立戦争の真っ最中 §7(上納金停止中)";
-            }
-            drawString(poseStack, this.font, "§e国家状態: " + statusStr, this.left + 20, currentY + 32, 0xFFFFFF);
+            if (data.isMainCore) {
+                String statusStr = data.isVassal
+                        ? "§c§l属国 §7(宗主への税率: §e" + (int) (data.vassalTaxRate * 100) + "%§7)"
+                        : "§a§l独立国";
+                if (data.isVassal && data.isRebelling) {
+                    statusStr = "§e§l反乱中！ §c独立戦争の真っ最中 §7(上納金停止中)";
+                }
+                drawString(poseStack, this.font, "§e国家状態: " + statusStr, this.left + 20, currentY + 32, 0xFFFFFF);
 
-            if (data.isVassal) {
-                if (data.isRebelling) {
-                    drawCenteredString(poseStack, this.font, "§e宗主国のメインコアを破壊すれば独立を獲得できます！", this.left + this.widthSize / 2, this.top + 130, 0xFFFFFF);
+                if (data.isVassal) {
+                    if (data.isRebelling) {
+                        drawCenteredString(poseStack, this.font, "§e宗主国のメインコアを破壊すれば独立を獲得できます！", this.left + this.widthSize / 2, this.top + 130, 0xFFFFFF);
+                    } else {
+                        drawCenteredString(poseStack, this.font, "§7平和的独立を行うか、チャットコマンド §c/territory rebel §7で反乱を起こせます。", this.left + this.widthSize / 2, this.top + 130, 0xCCCCCC);
+                    }
                 } else {
-                    drawCenteredString(poseStack, this.font, "§7平和的独立を行うか、チャットコマンド §c/territory rebel §7で反乱を起こせます。", this.left + this.widthSize / 2, this.top + 130, 0xCCCCCC);
+                    drawCenteredString(poseStack, this.font, "§7他プレイヤーのメインコアを完全に破壊すると属国にできます。", this.left + this.widthSize / 2, this.top + 135, 0xBBBBBB);
                 }
             } else {
-                drawCenteredString(poseStack, this.font, "§7他プレイヤーのメインコアを完全に破壊すると属国にできます。", this.left + this.widthSize / 2, this.top + 135, 0xBBBBBB);
+                drawCenteredString(poseStack, this.font, "§7自分のサブコアであれば不労所得化(金精製機化)が可能です。", this.left + this.widthSize / 2, this.top + 130, 0xCCCCCC);
             }
         } else if (activeTab == 1) {
             // Debuffs Tab text (Overlapping resolved: description at top+68, labels at top+82/top+127/top+172)
