@@ -103,7 +103,8 @@ public class PacketRequestDepositGold {
                         state.treasury,
                         state.totalIronSold,
                         state.totalGoldSold,
-                        state.totalEmeraldSold
+                        state.totalEmeraldSold,
+                        state.doubleTradeLicense
                 ), player);
             }
         });

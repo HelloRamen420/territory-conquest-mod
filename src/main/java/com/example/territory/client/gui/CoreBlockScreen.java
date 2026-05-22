@@ -83,7 +83,7 @@ public class CoreBlockScreen extends Screen {
                         Minecraft.getInstance().setScreen(new ExchangeScreen(
                                 data.corePos, data.treasury,
                                 data.totalIronSold, data.totalGoldSold, data.totalEmeraldSold,
-                                this
+                                data.doubleTradeLicense, this
                         ));
                     }
             );

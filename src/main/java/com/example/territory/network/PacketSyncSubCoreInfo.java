@@ -21,8 +21,9 @@ public class PacketSyncSubCoreInfo {
     public final int totalIronSold;
     public final int totalGoldSold;
     public final int totalEmeraldSold;
+    public final boolean doubleTradeLicense;
 
-    public PacketSyncSubCoreInfo(BlockPos corePos, String ownerName, String teamColor, int treasury, int ironSold, int goldSold, int emeraldSold) {
+    public PacketSyncSubCoreInfo(BlockPos corePos, String ownerName, String teamColor, int treasury, int ironSold, int goldSold, int emeraldSold, boolean doubleTradeLicense) {
         this.corePos = corePos;
         this.ownerName = ownerName;
         this.teamColor = teamColor;
@@ -30,6 +31,7 @@ public class PacketSyncSubCoreInfo {
         this.totalIronSold = ironSold;
         this.totalGoldSold = goldSold;
         this.totalEmeraldSold = emeraldSold;
+        this.doubleTradeLicense = doubleTradeLicense;
     }
 
     public PacketSyncSubCoreInfo(FriendlyByteBuf buf) {
@@ -40,6 +42,7 @@ public class PacketSyncSubCoreInfo {
         this.totalIronSold = buf.readInt();
         this.totalGoldSold = buf.readInt();
         this.totalEmeraldSold = buf.readInt();
+        this.doubleTradeLicense = buf.readBoolean();
     }
 
     public void toBytes(FriendlyByteBuf buf) {
@@ -50,6 +53,7 @@ public class PacketSyncSubCoreInfo {
         buf.writeInt(totalIronSold);
         buf.writeInt(totalGoldSold);
         buf.writeInt(totalEmeraldSold);
+        buf.writeBoolean(doubleTradeLicense);
     }
 
     public boolean handle(Supplier<NetworkEvent.Context> supplier) {
@@ -64,7 +68,7 @@ public class PacketSyncSubCoreInfo {
         public static void openScreen(PacketSyncSubCoreInfo packet) {
             net.minecraft.client.gui.screens.Screen currentScreen = Minecraft.getInstance().screen;
             if (currentScreen instanceof com.example.territory.client.gui.ExchangeScreen currentExchange) {
-                currentExchange.updateData(packet.treasury, packet.totalIronSold, packet.totalGoldSold, packet.totalEmeraldSold);
+                currentExchange.updateData(packet.treasury, packet.totalIronSold, packet.totalGoldSold, packet.totalEmeraldSold, packet.doubleTradeLicense);
             } else {
                 Minecraft.getInstance().setScreen(new SubCoreScreen(packet));
             }

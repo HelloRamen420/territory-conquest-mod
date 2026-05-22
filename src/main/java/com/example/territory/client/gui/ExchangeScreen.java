@@ -21,6 +21,7 @@ public class ExchangeScreen extends Screen {
     private int treasury;
     private final TerritorySavedData.PlayerState mockState;
     private final Screen parentScreen;
+    private boolean hasDoubleSales;
 
     private int left, top;
     private final int widthSize = 250;
@@ -44,10 +45,11 @@ public class ExchangeScreen extends Screen {
     private Button downScrollButton;
     private final Button[] listButtons = new Button[VISIBLE_ROWS];
 
-    public ExchangeScreen(BlockPos corePos, int treasury, int ironSold, int goldSold, int emeraldSold, Screen parentScreen) {
+    public ExchangeScreen(BlockPos corePos, int treasury, int ironSold, int goldSold, int emeraldSold, boolean hasDoubleSales, Screen parentScreen) {
         super(new TextComponent("総合取引所"));
         this.corePos = corePos;
         this.treasury = treasury;
+        this.hasDoubleSales = hasDoubleSales;
         this.parentScreen = parentScreen;
 
         this.mockState = new TerritorySavedData.PlayerState();
@@ -56,11 +58,12 @@ public class ExchangeScreen extends Screen {
         this.mockState.totalEmeraldSold = emeraldSold;
     }
 
-    public void updateData(int treasury, int ironSold, int goldSold, int emeraldSold) {
+    public void updateData(int treasury, int ironSold, int goldSold, int emeraldSold, boolean hasDoubleSales) {
         this.treasury = treasury;
         this.mockState.totalIronSold = ironSold;
         this.mockState.totalGoldSold = goldSold;
         this.mockState.totalEmeraldSold = emeraldSold;
+        this.hasDoubleSales = hasDoubleSales;
         updateControls();
     }
 
@@ -284,7 +287,11 @@ public class ExchangeScreen extends Screen {
             font.draw(poseStack, "選択中: " + getSellItemName(selectedItem), rightX, rightY, 0xFFFFFF);
             int soldCount = getSoldCount(selectedItem);
             font.draw(poseStack, "累計売却数: " + soldCount + " 個", rightX, rightY + 15, 0xAAAAAA);
-            font.draw(poseStack, "現在レート: " + rate.requiredItems + "個 → " + rate.goldReward + "G", rightX, rightY + 28, 0x55FF55);
+            int goldReward = rate.goldReward;
+            if (hasDoubleSales) {
+                goldReward *= 2;
+            }
+            font.draw(poseStack, "現在レート: " + rate.requiredItems + "個 → " + goldReward + "G", rightX, rightY + 28, 0x55FF55);
             
             int invCount = countInInventory(selectedItem);
             font.draw(poseStack, "手持ち: " + invCount + " 個", rightX, rightY + 45, 0xFFFFFF);
@@ -292,6 +299,9 @@ public class ExchangeScreen extends Screen {
             if (selectedQty > 0) {
                 int consumeItems = rate.requiredItems * selectedQty;
                 int earnGold = rate.goldReward * selectedQty;
+                if (hasDoubleSales) {
+                    earnGold *= 2;
+                }
                 font.draw(poseStack, "消費予定: " + consumeItems + " 個", rightX, rightY + 65, 0xFF5555);
                 font.draw(poseStack, "獲得予定: " + earnGold + " G", rightX, rightY + 80, 0x55FF55);
             } else {

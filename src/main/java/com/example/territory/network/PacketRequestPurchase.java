@@ -89,7 +89,8 @@ public class PacketRequestPurchase {
                         state.treasury,
                         state.totalIronSold,
                         state.totalGoldSold,
-                        state.totalEmeraldSold
+                        state.totalEmeraldSold,
+                        state.doubleTradeLicense
                 ), player);
             } else {
                 ModMessages.sendToPlayer(new PacketSyncCoreInfo(corePos, state), player);

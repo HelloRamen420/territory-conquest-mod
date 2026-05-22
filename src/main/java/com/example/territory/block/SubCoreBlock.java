@@ -60,7 +60,8 @@ public class SubCoreBlock extends Block {
                     ownerState.treasury,
                     ownerState.totalIronSold,
                     ownerState.totalGoldSold,
-                    ownerState.totalEmeraldSold
+                    ownerState.totalEmeraldSold,
+                    ownerState.doubleTradeLicense
             ), serverPlayer);
         }
 

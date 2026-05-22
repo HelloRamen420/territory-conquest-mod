@@ -150,7 +150,7 @@ public class PacketSyncCoreInfo {
         public static void openScreen(PacketSyncCoreInfo packet) {
             net.minecraft.client.gui.screens.Screen currentScreen = Minecraft.getInstance().screen;
             if (currentScreen instanceof com.example.territory.client.gui.ExchangeScreen currentExchange) {
-                currentExchange.updateData(packet.treasury, packet.totalIronSold, packet.totalGoldSold, packet.totalEmeraldSold);
+                currentExchange.updateData(packet.treasury, packet.totalIronSold, packet.totalGoldSold, packet.totalEmeraldSold, packet.doubleTradeLicense);
             } else {
                 Minecraft.getInstance().setScreen(new CoreBlockScreen(packet));
             }
